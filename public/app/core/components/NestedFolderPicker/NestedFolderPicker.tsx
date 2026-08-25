@@ -189,6 +189,7 @@ export function NestedFolderPicker({
 
   const click = useClick(context);
   const dismiss = useDismiss(context, {
+    escapeKey: !search,
     outsidePress: (event) => {
       const target = event.target;
       return !(target instanceof Element && target.closest('[data-folder-picker-clear-search]'));
@@ -234,12 +235,31 @@ export function NestedFolderPicker({
     [onChange]
   );
 
-  const handleClearSearch = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const resetSearch = useCallback(() => {
     setSearch('');
+    setSearchResults(null);
     searchInputRef.current?.focus();
   }, []);
+
+  const handleClearSearch = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      resetSearch();
+    },
+    [resetSearch]
+  );
+
+  const handleClearSearchKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLButtonElement>) => {
+      if (event.key === 'Escape' && search) {
+        event.preventDefault();
+        event.stopPropagation();
+        resetSearch();
+      }
+    },
+    [resetSearch, search]
+  );
 
   const handleCloseOverlay = useCallback(() => setOverlayOpen(false), [setOverlayOpen]);
 
@@ -326,12 +346,12 @@ export function NestedFolderPicker({
       if (event.key === 'Escape' && search) {
         event.preventDefault();
         event.stopPropagation();
-        setSearch('');
+        resetSearch();
         return;
       }
       handleKeyDown(event);
     },
-    [handleKeyDown, search]
+    [handleKeyDown, resetSearch, search]
   );
 
   const clearSearchLabel = t('browse-dashboards.folder-picker.clear-search', 'Clear search');
@@ -386,6 +406,7 @@ export function NestedFolderPicker({
             <IconButton
               name="times"
               size="sm"
+              tabIndex={-1}
               tooltip={clearSearchLabel}
               data-folder-picker-clear-search=""
               onMouseDown={(event) => {
@@ -393,6 +414,7 @@ export function NestedFolderPicker({
                 event.stopPropagation();
               }}
               onClick={handleClearSearch}
+              onKeyDown={handleClearSearchKeyDown}
             />
           ) : undefined
         }
