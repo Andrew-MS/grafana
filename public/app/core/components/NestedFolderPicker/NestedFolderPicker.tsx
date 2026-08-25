@@ -7,7 +7,7 @@ import * as React from 'react';
 import { type GrafanaTheme2 } from '@grafana/data';
 import { selectors } from '@grafana/e2e-selectors';
 import { t } from '@grafana/i18n';
-import { Alert, floatingUtils, Icon, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
+import { Alert, floatingUtils, Icon, IconButton, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
 import { useGetFolderQueryFacade } from 'app/api/clients/folder/v1beta1/hooks';
 import { getMessageFromError, getStatusFromError } from 'app/core/utils/errors';
 import { type DashboardViewItemWithUIItems, type DashboardsTreeItem } from 'app/features/browse-dashboards/types';
@@ -115,6 +115,7 @@ export function NestedFolderPicker({
   const overlayId = useId();
 
   const lastSearchTimestamp = useRef<number>(0);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     teamFolderTreeItems,
@@ -187,7 +188,10 @@ export function NestedFolderPicker({
   });
 
   const click = useClick(context);
-  const dismiss = useDismiss(context);
+  const dismiss = useDismiss(context, {
+    outsidePress: (event) =>
+      !(event.target instanceof Element && event.target.closest('[data-folder-picker-clear-search]')),
+  });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, click]);
 
@@ -342,10 +346,33 @@ export function NestedFolderPicker({
   return (
     <>
       <Input
-        ref={refs.setReference}
+        ref={(element) => {
+          searchInputRef.current = element;
+          refs.setReference(element);
+        }}
         autoFocus
         data-testid={selectors.components.FolderPicker.input}
         prefix={label ? <Icon name="folder" /> : <Icon name="search" />}
+        suffix={
+          search ? (
+            <IconButton
+              name="times"
+              tabIndex={-1}
+              data-folder-picker-clear-search=""
+              tooltip={t('browse-dashboards.folder-picker.clear-search', 'Clear search')}
+              onMouseDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setSearch('');
+                searchInputRef.current?.focus();
+              }}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+            />
+          ) : undefined
+        }
         placeholder={label ?? t('browse-dashboards.folder-picker.search-placeholder', 'Search folders')}
         value={search}
         invalid={invalid}

@@ -4,6 +4,7 @@ import { setBackendSrv } from '@grafana/runtime';
 import { setupMockServer } from '@grafana/test-utils/server';
 import { getFolderFixtures, setTestFlags } from '@grafana/test-utils/unstable';
 import { backendSrv } from 'app/core/services/backend_srv';
+import * as searcher from 'app/features/search/service/searcher';
 import { resolveStarredFolders } from 'app/features/stars/folders';
 import { useStarredItems } from 'app/features/stars/hooks';
 
@@ -270,6 +271,70 @@ describe('NestedFolderPicker', () => {
 
     expect(await screen.findByText('Error loading some folders')).toBeInTheDocument();
     expect(screen.getByText('Failed to load folders')).toBeInTheDocument();
+  });
+
+  describe('search', () => {
+    const searchHitTitle = 'Search Hit Folder';
+
+    beforeEach(() => {
+      const searchHit = {
+        kind: 'folder',
+        uid: 'search-hit-uid',
+        name: searchHitTitle,
+      };
+
+      jest.spyOn(searcher, 'getGrafanaSearcher').mockReturnValue({
+        search: jest.fn().mockResolvedValue({
+          view: {
+            dataFrame: { meta: {} },
+            map: (callback: (item: typeof searchHit) => unknown) => [callback(searchHit)],
+          },
+        }),
+      } as unknown as ReturnType<typeof searcher.getGrafanaSearcher>);
+    });
+
+    async function openPicker(user: { click: (element: Element) => Promise<void> }) {
+      await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+      await screen.findByLabelText(folderA.item.title);
+    }
+
+    it('does not show a clear search action when the query is empty', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      await openPicker(user);
+
+      expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+    });
+
+    it('empties the search value and returns focus to the search input when Clear search is clicked', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      await openPicker(user);
+
+      const input = screen.getByPlaceholderText('Search folders');
+      await user.type(input, 'hit', { skipClick: true });
+      expect(await screen.findByLabelText(searchHitTitle)).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+      expect(input).toHaveValue('');
+      expect(input).toHaveFocus();
+      expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+    });
+
+    it('restores the browse-only Dashboards root after clearing search results', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      await openPicker(user);
+
+      expect(screen.getByLabelText('Dashboards')).toBeInTheDocument();
+
+      await user.type(screen.getByPlaceholderText('Search folders'), 'hit', { skipClick: true });
+      expect(await screen.findByLabelText(searchHitTitle)).toBeInTheDocument();
+      expect(screen.queryByLabelText('Dashboards')).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+      expect(await screen.findByLabelText('Dashboards')).toBeInTheDocument();
+      expect(screen.queryByLabelText(searchHitTitle)).not.toBeInTheDocument();
+    });
   });
 
   describe('team folders', () => {
