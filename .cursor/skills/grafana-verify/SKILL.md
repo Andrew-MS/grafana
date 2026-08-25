@@ -11,7 +11,7 @@ stack, allowed paths, test path, and evidence commands.
 ## Red then green
 
 1. Add the meaningful test first.
-2. Run baseline mode while the implementation change is absent or stashed:
+2. Run baseline mode before any production source change:
 
    ```bash
    scripts/local-verify.sh --mode baseline \
@@ -31,6 +31,10 @@ stack, allowed paths, test path, and evidence commands.
 
 Final mode refuses dirty trees. Its `head_sha` is therefore the commit that must
 be pushed and reviewed.
+
+Baseline mode also enforces ordering: it refuses to run when the named source
+file already differs from the base, or when the test file has no new change.
+Do not stash an implementation to create retroactive red evidence.
 
 ## Scope
 

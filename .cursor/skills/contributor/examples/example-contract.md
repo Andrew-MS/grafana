@@ -36,19 +36,25 @@ action keyboard-reachable.
 
 ## 2. Discovery evidence
 
-| Question      | Finding                                                               | Repository evidence                                                                                                                                          |
-| ------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Landing zone  | Existing folder-picker search input                                   | `public/app/core/components/NestedFolderPicker/NestedFolderPicker.tsx`                                                                                       |
-| Instructions  | Root guidance; no scoped core instructions                            | `AGENTS.md`                                                                                                                                                  |
-| Exemplars     | Existing clear-search controls disagree on control type               | `packages/grafana-ui/src/components/FilterInput/FilterInput.tsx`, `public/app/features/dashboard/components/TransformationsEditor/TransformationsEditor.tsx` |
-| Test location | Extend the co-located test                                            | `public/app/core/components/NestedFolderPicker/NestedFolderPicker.test.tsx`                                                                                  |
-| Ownership     | Frontend navigation                                                   | `.github/CODEOWNERS`                                                                                                                                         |
-| Skills        | Frontend testing; inspect selector rules but reuse existing selectors | `frontend-testing-strategy`, `add-e2e-selectors`                                                                                                             |
+| Field                   | Finding                                                                                                | Repository evidence                                                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Landing zone and symbol | Open-state search `Input` in `NestedFolderPicker`                                                      | `public/app/core/components/NestedFolderPicker/NestedFolderPicker.tsx`                                                                                       |
+| Source files            | Picker component only                                                                                  | `public/app/core/components/NestedFolderPicker/NestedFolderPicker.tsx`                                                                                       |
+| Test files              | Extend the co-located test                                                                             | `public/app/core/components/NestedFolderPicker/NestedFolderPicker.test.tsx`                                                                                  |
+| Instructions            | Root guidance; no scoped core instructions                                                             | `AGENTS.md`                                                                                                                                                  |
+| Exemplars               | Two existing clear-search controls disagree on control type                                            | `packages/grafana-ui/src/components/FilterInput/FilterInput.tsx`, `public/app/features/dashboard/components/TransformationsEditor/TransformationsEditor.tsx` |
+| Test helpers            | Existing render helper and mock server; exact search fixture must be confirmed before plan publication | co-located test and test-utils imports                                                                                                                       |
+| Ownership               | Frontend navigation                                                                                    | `.github/CODEOWNERS`                                                                                                                                         |
+| Skills                  | Conventions, frontend testing, and selector reuse                                                      | `grafana-conventions`, `frontend-testing-strategy`, `add-e2e-selectors`                                                                                      |
+| Targeted commands       | Co-located Jest, ESLint, and i18n extraction                                                           | section 6                                                                                                                                                    |
+| Verified at             | Record the current base SHA during a real Plan run                                                     | `git rev-parse HEAD`                                                                                                                                         |
+| Unresolved              | This illustrative draft has not resolved the control choice or test fixture                            | must be answered before CreatePlan                                                                                                                           |
 
 ## 3. Tradeoff decision
 
 Choose a semantic `Button` or `IconButton` after comparing the existing
-exemplars. Do not copy the sibling clickable `Icon` accessibility pattern.
+exemplars. Do not copy the sibling clickable `Icon` accessibility pattern. A
+real Plan run asks for and records this decision before CreatePlan.
 
 ## 4. Scope bounds
 
@@ -92,7 +98,7 @@ expected.
 ## 9. Implementation handoff
 
 Create the feature branch from the fork's updated `main`. Load the frontend
-testing skill and the first-PR frontend reference. Generate i18n output before
+testing skill and the conventions frontend reference. Generate i18n output before
 the implementation commit.
 
 ## 10. Post-PR log

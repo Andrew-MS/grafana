@@ -29,9 +29,11 @@ Grafana is a monitoring and observability platform. Go backend, TypeScript/React
 ## Cursor contributor workflow
 
 For a first contribution, attach the `contributor` skill in Plan Mode to create a
-change contract before editing production files. After a human approves the
-contract, activate the same skill with **Use as Mode** and attach the approved
-contract for implementation. The workflow loads repository conventions and
+complete change contract before editing production files. The skill guides the
+user through each phase and invokes the readonly `convention-resolver` once to
+produce a reusable discovery packet. After a human approves the final Cursor
+plan, activate `contributor` with **Use as Mode** and attach that plan for
+test-first implementation. The workflow loads repository conventions and
 verification skills progressively from `.cursor/skills/`.
 
 ## Comments

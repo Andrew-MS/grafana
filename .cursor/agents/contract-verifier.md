@@ -65,7 +65,8 @@ Omit `GAPS` entries only when the verdict is PASS.
 ## Explicit non-overlap
 
 - Bugs, deprecated APIs, implementation anti-patterns, and weak assertions:
-  `/review`.
+  BugBot on the draft PR. Use `/review` only when BugBot is unavailable or a
+  local pre-push review was explicitly requested.
 - Formatting and imports: deterministic lint and formatting checks.
 - Test quality while writing: `frontend-testing-strategy`.
 - Product judgment: the human contract-approval gate.

@@ -146,9 +146,9 @@ skip_check() {
 }
 
 write_baseline_json() {
-  local observed="$1" exit_code="$2" test_name="$3" excerpt="$4" log_path="$5"
+  local observed="$1" exit_code="$2" test_name="$3" excerpt="$4" log_path="$5" test_cmd="$6"
   python3 - "$OUT" "$SLUG" "$STACK" "$BASE_REF" "$BASE_SHA" "$observed" "$exit_code" \
-    "$test_name" "$excerpt" "$log_path" "$CHANGED_LIST" <<'PY'
+    "$test_name" "$excerpt" "$log_path" "$test_cmd" "$CHANGED_LIST" <<'PY'
 import datetime
 import json
 import pathlib
@@ -156,7 +156,7 @@ import subprocess
 import sys
 
 (out, slug, stack, base_ref, base_sha, observed, exit_code,
- test_name, excerpt, log_path, changed_path) = sys.argv[1:]
+ test_name, excerpt, log_path, test_cmd, changed_path) = sys.argv[1:]
 changed = pathlib.Path(changed_path).read_text().splitlines()
 payload = {
     "schema_version": 2,
@@ -173,7 +173,7 @@ payload = {
     "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     "changed_files": changed,
     "baseline_red": {
-        "cmd": f"targeted test; full output: {log_path}",
+        "cmd": test_cmd,
         "expected": "fail",
         "observed": observed,
         "exit_code": int(exit_code),
@@ -200,29 +200,34 @@ if [[ "$MODE" == "baseline" ]]; then
   LOG_PATH=".cursor/verify/${SLUG}.baseline.log"
   TEST_CMD="yarn jest $(quote_join "$TEST_FILE") --watchAll=false"
 
+  if [[ ! -f "$TEST_FILE" ]]; then
+    echo "Baseline test file does not exist: $TEST_FILE" >&2
+    exit 2
+  fi
+
+  if ! git diff --quiet "$BASE_SHA" -- "$SOURCE_FILE"; then
+    echo "Baseline refused: production source already differs from the base: $SOURCE_FILE" >&2
+    echo "Restore the source change, keep the test-only change, observe red, then implement." >&2
+    exit 2
+  fi
+
+  if git diff --quiet "$BASE_SHA" -- "$TEST_FILE" && ! git ls-files --others --exclude-standard -- "$TEST_FILE" | grep -q .; then
+    echo "Baseline refused: the test file has no change relative to the base: $TEST_FILE" >&2
+    echo "Add the new behavior test before running baseline mode." >&2
+    exit 2
+  fi
+
   if $PRINT_ONLY; then
-    echo "[print-only] stash implementation changes in $SOURCE_FILE"
+    echo "[print-only] assert source unchanged from base: $SOURCE_FILE"
     echo "[print-only] $TEST_CMD"
-    write_baseline_json "error" "2" "" "print-only; no test executed" "$LOG_PATH"
+    write_baseline_json "error" "2" "" "print-only; no test executed" "$LOG_PATH" "$TEST_CMD"
     exit 0
   fi
 
   mkdir -p "$(dirname "$LOG_PATH")"
-  STASH_BEFORE="$(git rev-parse -q --verify refs/stash 2>/dev/null || true)"
-  git stash push -m "cursor-baseline-${SLUG}" -- "$SOURCE_FILE" >/dev/null
-  STASH_AFTER="$(git rev-parse -q --verify refs/stash 2>/dev/null || true)"
-  STASH_CREATED=false
-  [[ -n "$STASH_AFTER" && "$STASH_AFTER" != "$STASH_BEFORE" ]] && STASH_CREATED=true
 
   bash -lc "$TEST_CMD" 2>&1 | tee "$LOG_PATH"
   TEST_EXIT=${PIPESTATUS[0]}
-
-  if $STASH_CREATED; then
-    git stash pop --index >/dev/null || {
-      echo "Could not restore stashed implementation changes." >&2
-      exit 2
-    }
-  fi
 
   OBSERVED="fail"
   [[ "$TEST_EXIT" -eq 0 ]] && OBSERVED="pass"
@@ -237,7 +242,7 @@ text = pathlib.Path(sys.argv[1]).read_text(errors="replace")
 print(text[-4000:])
 PY
 )"
-  write_baseline_json "$OBSERVED" "$TEST_EXIT" "$FAILING_TEST" "$EXCERPT" "$LOG_PATH"
+  write_baseline_json "$OBSERVED" "$TEST_EXIT" "$FAILING_TEST" "$EXCERPT" "$LOG_PATH" "$TEST_CMD"
   echo "Baseline evidence written to $OUT. Read the failure; exit code alone is not proof."
   [[ "$OBSERVED" == "fail" ]]
   exit $?

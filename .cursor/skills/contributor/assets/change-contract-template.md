@@ -31,16 +31,25 @@ out_of_bounds:
 
 ## 2. Discovery evidence
 
-| Question             | Finding | Repository evidence      |
-| -------------------- | ------- | ------------------------ |
-| Landing zone         |         | `<source-file>`          |
-| Nearest instructions |         | `<nearest-instructions>` |
-| Authoritative guide  |         | `<authoritative-guide>`  |
-| Existing exemplar    |         | `<exemplar-file>`        |
-| Test location        |         | `<test-file>`            |
-| CODEOWNERS           |         | `.github/CODEOWNERS`     |
-| Current checks       |         | `.github/workflows/...`  |
-| Skills to load       |         | `skill-name`             |
+This packet is the cache consumed by implementation. Leave no unresolved field
+unless it is explicitly named and approved.
+
+| Field                     | Finding | Repository evidence           |
+| ------------------------- | ------- | ----------------------------- |
+| Landing zone              |         | `<source-file>`               |
+| Target symbols            |         | `<symbol names>`              |
+| Source files              |         | `<source paths>`              |
+| Test files                |         | `<test paths>`                |
+| Nearest instructions      |         | `<nearest-instructions>`      |
+| Authoritative guides      |         | `<authoritative-guides>`      |
+| Exemplars (maximum two)   |         | `<exemplar-files>`            |
+| Test helpers and fixtures |         | `<helper symbols and paths>`  |
+| CODEOWNERS                |         | `.github/CODEOWNERS`          |
+| Current checks            |         | `.github/workflows/...`       |
+| Skills to load            |         | `<skill names>`               |
+| Exact targeted commands   |         | `<commands>`                  |
+| Verified at               |         | `<base SHA>`                  |
+| Unresolved questions      | `none`  | `<question and search scope>` |
 
 ## 3. Tradeoff decision
 
@@ -54,6 +63,8 @@ out_of_bounds:
 **Human decision:**
 
 **What would change this decision:**
+
+**Evidence tier decision:** unit / integration / focused E2E / walkthrough
 
 ## 4. Scope bounds
 

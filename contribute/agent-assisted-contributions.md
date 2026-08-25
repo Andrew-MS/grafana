@@ -27,17 +27,19 @@ standard without the owning teams.
 
 ## Cursor primitives
 
-| Primitive                                          | Responsibility                                                   |
-| -------------------------------------------------- | ---------------------------------------------------------------- |
-| Built-in Plan Mode                                 | Tool-level boundary for discovery, design, and contract creation |
-| `contributor` skill attached in Plan Mode          | Repository-specific questions, routing, and contract structure   |
-| `contributor` skill activated with **Use as Mode** | Persistent implementation workflow after approval                |
-| `grafana-first-pr` skill                           | Path-to-authority map and stack-specific contribution checks     |
-| `grafana-verify` skill                             | Targeted commands and machine-readable evidence                  |
-| `contract-verifier` readonly subagent              | Acceptance, scope, and evidence completeness only                |
-| `/review`                                          | Source-code bugs, anti-patterns, and weak tests                  |
-| `/walkthrough-artifacts`                           | User-visible browser evidence before push                        |
-| `/subscribe`                                       | Observe real CI without polling                                  |
+| Primitive                                          | Responsibility                                                    |
+| -------------------------------------------------- | ----------------------------------------------------------------- |
+| Built-in Plan Mode                                 | Tool-level boundary for discovery, design, and contract creation  |
+| `contributor` skill attached in Plan Mode          | Repository-specific questions, routing, and contract structure    |
+| `contributor` skill activated with **Use as Mode** | Persistent implementation workflow after approval                 |
+| `grafana-conventions` skill                        | Path-to-authority resolver and stack-specific context index       |
+| `convention-resolver` readonly subagent            | One search-budgeted discovery packet, isolated from the main chat |
+| `grafana-verify` skill                             | Targeted commands and machine-readable evidence                   |
+| `contract-verifier` readonly subagent              | Acceptance, scope, and evidence completeness only                 |
+| BugBot                                             | Default draft-PR review for bugs, anti-patterns, and weak tests   |
+| `/review`                                          | Fallback when BugBot is unavailable or local review is requested  |
+| `/walkthrough-artifacts`                           | User-visible browser evidence before push                         |
+| `/subscribe`                                       | Observe real CI without polling                                   |
 
 No project `modes.json` is required or documented. A discovered skill can back
 a Custom Mode while selected.
@@ -50,37 +52,51 @@ Official Cursor documentation:
 
 ## Two-lane workflow
 
+For first-time contributors, every response begins with a compact journey
+status: current phase, completed phases, current work, the one decision needed
+from the user (or none), the next gate, and whether code has changed. Experienced
+contributors can ask for concise updates.
+
 ### Lane 1: contract
 
 1. Select built-in **Plan Mode**.
 2. Invoke `/contributor` with ordinary Enter so it attaches to the message
    without replacing Plan Mode.
 3. Provide the product outcome without file paths or implementation hints.
-4. Let the agent run Understand, Discover, and Disambiguate.
-5. Save the change contract under `.cursor/contracts/` or save the Cursor plan
-   and record its path.
-6. Review it as PM, QA, engineer, and platform owner.
-7. Approve it by setting approval metadata and `status: approved`.
+4. Let the agent run Understand, one convention-resolver pass, and
+   Disambiguate. It should show the current phase, completed work, decisions
+   needed from you, and what happens next.
+5. Answer every decision-bearing question. CreatePlan is not a fallback for
+   asking questions.
+6. The final saved Cursor plan is the authoritative contract. Do not create or
+   manually edit `.cursor/contracts/` in Plan Mode.
+7. Review and approve the complete plan for implementation.
 
 Plan Mode prevents production edits in this lane.
 
 ### Lane 2: implementation
 
 1. Select `/contributor` and choose **Use as Mode**.
-2. Attach the approved contract. The mode contexts are separate; the file is
+2. Attach the approved Cursor plan. The mode contexts are separate; the file is
    the deliberate handoff.
-3. Confirm Contributor mode refuses a draft or incomplete contract.
-4. Implement only within the approved paths.
-5. Observe the named test fail before the behavior exists.
-6. Generate required output, commit, and run final verification against clean
+3. Contributor creates any machine-readable contract projection automatically;
+   the user never edits YAML.
+4. Read the discovery packet and its named files. Do not repeat repository-wide
+   discovery unless an explicit unresolved field remains.
+5. Edit tests only, then observe the named expected failure. Baseline
+   verification refuses production changes that already differ from the base.
+6. Implement only within approved paths.
+7. Generate required output, commit, and run final verification against clean
    `HEAD`.
-7. Run the contract verifier, then `/review`.
-8. Run focused browser evidence where the behavior requires it.
-9. Record the walkthrough before push.
-10. Check the commit signature and obtain explicit human push approval.
-11. Put the contract, verification table, full `verify.json`, and recording in
+8. Run the contract verifier and the approved browser evidence.
+9. Record the walkthrough in the same agent that owns the browser and recording.
+10. Check the commit signature and ask a new, explicit push question. Earlier
+    approvals never count.
+11. Push only after that answer, open a draft PR, and run BugBot before
+    requesting human review. Use `/review` only as the documented fallback.
+12. Put the contract, verification table, full `verify.json`, and recording in
     the PR body.
-12. Subscribe to CI; do not replace it with agent judgment.
+13. Subscribe to CI; do not replace it with agent judgment.
 
 ## One contract, four audiences
 
@@ -100,7 +116,7 @@ When a convention changes:
 
 1. Update the source repository guide or scoped `AGENTS.md`.
 2. If routing changed, update one row in
-   `.cursor/skills/grafana-first-pr/references/convention-map.md`.
+   `.cursor/skills/grafana-conventions/references/convention-map.md`.
 3. If a recurring stack footgun changed, update the corresponding frontend or
    backend reference.
 4. Run:
@@ -112,6 +128,10 @@ When a convention changes:
 
 The map's likely-checks column is a hint. Confirm actual triggers from current
 workflow files during each contract; CI remains authoritative.
+
+The conventions skill is an index, not another convention source. Its job is to
+find the current source and return a reusable packet. Domain teams continue to
+own their `AGENTS.md`, code, tests, and guides.
 
 ## Guardrails
 
@@ -183,8 +203,9 @@ Use a fresh Cloud Agent created from the prebuilt environment. Before the
 interview:
 
 - confirm `/contributor` appears and works in both lanes;
+- confirm `grafana-conventions` and `convention-resolver` are discoverable;
 - confirm the draft-contract precondition refuses implementation;
-- confirm `node_modules` and Playwright Chromium are available;
+- confirm pinned Node, `node_modules`, and Playwright Chromium are available;
 - run the targeted Jest test twice and once with `CI=true`;
 - observe the intended red assertion and final green checks;
 - time `yarn i18n-extract`;
@@ -201,9 +222,9 @@ or locator problems during the interview.
 | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | 3       | Show a sticky-dashboard-tabs request the workflow declines because honest evidence requires a broad browser matrix |
 | 4       | Customer problem, architecture, and deliberately excluded primitives                                               |
-| 10      | Live Understand → Discover → Disambiguate → approved contract                                                      |
+| 10      | Guided Understand → one resolver pass → Disambiguate → all decisions → approved plan-contract                      |
 | 10      | Red test, implementation, generation, commit, final verification; start focused E2E early                          |
-| 3       | Contract verifier and `/review`                                                                                    |
+| 3       | Contract verifier; explain BugBot as the draft-PR source reviewer                                                  |
 | 3       | Browser walkthrough and recording                                                                                  |
 | 2       | Signature, human push approval, PR evidence, CI subscription                                                       |
 | 5       | Limits, measurement, and Stage 2                                                                                   |
@@ -240,10 +261,12 @@ The final design came from rejected approaches:
 - A hand-maintained CI path map was cut because it would drift.
 - A shared `events.jsonl` was cut because it would conflict and duplicate
   GitHub.
-- A generic second reviewer was cut; the contract verifier and `/review` have
-  structurally different inputs.
-- Hooks were cut because Plan Mode provides the contract boundary and the
-  implementation mode requires an approved contract.
+- A generic custom source reviewer was cut. The contract verifier checks
+  acceptance evidence; BugBot reviews the draft PR; `/review` is the fallback.
+- Broad edit-blocking hooks remain out of scope because Plan Mode provides the
+  contract boundary. Dogfood showed that prompt-only push approval can still be
+  inferred incorrectly; a narrowly scoped pre-push approval hook is now a
+  justified follow-up, not a rejected idea.
 - Bug-fix demo targets were rejected in favor of additive, visible feature
   work.
 - Sticky dashboard tabs were rejected as the implementation target because a
@@ -253,10 +276,15 @@ Known limits:
 
 - The convention map is incomplete and detects file movement, not semantic
   drift.
+- Project skill discovery depends on the supported Cursor surface and startup;
+  direct file attachment remains the documented fallback.
 - Backend test-quality guidance remains tribal.
 - The verification scripts are manually checked because Grafana's shellcheck
   workflow does not scan their directory.
 - `verify.json` proves commands exited successfully; browser-only behavior still
   requires browser evidence.
+- Stateful browser recording and push approval must remain with the owning
+  agent; background handoffs cannot inherit those permissions or recording
+  state safely.
 - Fork CI may be absent.
 - Business impact needs a baseline and multiple contributions.

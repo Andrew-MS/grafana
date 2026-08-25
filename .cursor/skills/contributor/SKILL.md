@@ -1,62 +1,107 @@
 ---
 name: contributor
-description: Turn a product outcome into an approved, repository-grounded change contract in Plan Mode, then implement that contract safely when this skill is activated with Use as Mode.
+description: Guide a contributor from product outcome through an approved, repository-grounded contract, implementation, evidence, review, and PR. Use in Plan Mode first, then activate with Use as Mode.
 icon: git-branch
 color: blue
 ---
 
 # Contributor workflow
 
-Use one workflow in two mutually exclusive Cursor modes. The saved change
-contract is the only handoff between them.
+Use one guided workflow in two mutually exclusive Cursor modes. Default to the
+first-time-contributor experience unless the user asks for concise updates.
+
+## Journey navigator
+
+Start every user-facing response with:
+
+```text
+Contributor journey: <phase-number>/8 — <phase>
+Completed: <completed phases or "none">
+Current: <what is happening now>
+Need from you: <one decision or "nothing">
+Next: <next phase and gate>
+Code changed: yes|no
+```
+
+The phases are Understand, Discover, Disambiguate, Contract, Implement, Verify,
+Review, and PR. Announce every transition. Never leave the user guessing whether
+the agent is researching, waiting for a decision, editing, testing, recording,
+or asking to push.
 
 ## Lane 1: contract in Plan Mode
 
 When attached to a message in built-in Plan Mode:
 
 1. **Understand** the user, outcome, success signal, and non-goals. Ask only one
-   or two critical questions at a time.
-2. **Discover** the landing zone with an Explore subagent. Read the nearest
-   `AGENTS.md`, then
-   `../grafana-first-pr/references/convention-map.md`. Record authoritative
-   sources, an exemplar, CODEOWNERS, applicable skills, test location, and
-   likely checks confirmed from current workflows.
+   or two critical questions at a time. If an AskQuestion tool is unavailable,
+   ask directly in chat; CreatePlan is never a substitute for a question.
+2. **Discover** with the readonly `convention-resolver` subagent and
+   `../grafana-conventions/references/convention-map.md`. Require its structured
+   discovery packet. Do not duplicate its repo-wide searches in the parent.
 3. **Disambiguate** unclear scope and conflicting patterns using
-   `references/tradeoffs.md`. Explain options in product language.
-4. **Contract** by filling `assets/change-contract-template.md`. Save it under
-   `.cursor/contracts/<slug>.md` or save the Cursor plan and record its path.
-5. Stop. A human must set `status: approved`, `approved_at`, and `approved_by`.
+   `references/tradeoffs.md`. Explain options in product language and ask every
+   decision-bearing question now. Evidence tier, control/API choice, scope, and
+   rollout decisions may not remain blank.
+4. **Contract** only after Understand, Discover, and Disambiguate are complete.
+   Call CreatePlan once. The saved Cursor plan is the authoritative contract.
+   Do not write `.cursor/contracts/` in Plan Mode and never ask the user to edit
+   YAML.
+5. Stop and ask the human to approve the complete plan for implementation.
 
 Plan Mode is the tool-level boundary. Do not switch modes or edit production
-files while the contract is draft.
+files while the contract is incomplete or unapproved.
 
 ## Lane 2: implementation as a Custom Mode
 
 When activated with **Use as Mode**:
 
-1. Require an attached contract.
-2. Refuse to edit unless it contains:
-   - `status: approved`;
-   - human approval metadata;
-   - numbered acceptance criteria;
-   - an evidence plan;
-   - machine-readable in-bounds and out-of-bounds paths.
-3. Load `../grafana-first-pr/SKILL.md`, then only the stack reference and
-   specialized testing skills named by the contract.
-4. **Implement** only within the approved paths. Return to Disambiguate for
-   scope growth.
-5. **Verify** with `../grafana-verify/SKILL.md`. Observe the named red test,
-   implement, generate required output, commit, then run final verification
-   against clean `HEAD`.
-6. **Validate** with the readonly `contract-verifier` subagent, then `/review`.
-   Use `/review-security` only for the risk classes in the verifier instructions.
-7. For a user-visible change, run focused E2E when rehearsed, then create a
-   walkthrough recording before push.
-8. Show the verification and signing evidence. Stop for explicit human
-   approval before every push.
-9. Open the PR with the contract, verification table, full `verify.json`, and
-   walkthrough evidence. Use `/subscribe` for CI and `/babysit` for later PR
-   activity; neither may bypass the pre-push gate.
+1. Require the approved Cursor plan to be attached. Refuse to edit if it lacks
+   a resolved discovery packet, human decisions, scope bounds, numbered
+   acceptance criteria, and an evidence plan.
+2. Materialize `.cursor/contracts/<slug>.md` automatically as a machine-readable
+   projection of the approved plan. Record approval from the explicit handoff
+   message; this file is not a second decision surface and the user never edits
+   it.
+3. Read only the files, symbols, instructions, exemplars, and skills named in
+   the discovery packet. Do not repeat Discover. Search locally only when
+   runtime evidence contradicts the packet; reopen Discover for stale or
+   incomplete contracts.
+4. Load `../grafana-conventions/SKILL.md`, then only the stack and specialized
+   testing references named by the contract.
+5. **Implement test-first.** Edit test files only. Run baseline verification and
+   show the named expected assertion failure. Production edits are forbidden
+   until that evidence exists.
+6. Implement only within approved paths. Return to Disambiguate for scope or
+   evidence-tier changes.
+7. Generate required output, commit, and run final verification against clean
+   `HEAD`.
+8. **Review** with the readonly `contract-verifier`. After human push approval,
+   open a draft PR and use BugBot as the default source reviewer before asking
+   humans to review. Use `/review` only when BugBot is unavailable or a local
+   pre-push review is explicitly requested. Use `/review-security` only for the
+   verifier's risk classes.
+9. For a user-visible change, run the approved browser evidence and create the
+   walkthrough recording in the same agent that owns the browser and recording
+   state. Do not hand off an active recording.
+10. Show final verification, signature, review plan, and walkthrough evidence.
+    Ask a new, explicit push question. Contract or implementation approval never
+    counts as push approval. No subagent or `/babysit` may infer it.
+11. After approval, push and open the draft PR with the contract, verification
+    table, full `verify.json`, and walkthrough evidence. Use `/subscribe` for CI
+    and `/babysit` for later activity; every additional push needs approval.
+
+## Search budget
+
+Discover uses this escalation order:
+
+1. target directory;
+2. matching convention-index row;
+3. nearest instructions, source, co-located test, and at most two exemplars;
+4. one structured convention-resolver subagent;
+5. repo-wide search only for a named unresolved field.
+
+Stop when the discovery packet is complete. Implementation consumes the packet
+instead of searching again.
 
 ## Approved context boundary
 
@@ -75,8 +120,24 @@ dependencies require an explicit contract decision.
 - Layout behavior that jsdom cannot observe: require focused browser evidence
   or decline/escalate; never accept a style-string assertion as behavior proof.
 
+## Delivery requirements
+
+- Follow `CONTRIBUTING.md`, `contribute/create-pull-request.md`, and the tracked
+  PR template for process.
+- Title the PR `<Area>: <Summary>`; include `Fixes #<n>` only when the approved
+  plan records an issue.
+- Generate required output before the implementation commit; never hand-edit a
+  generated file.
+- Verify the committed SHA with `git verify-commit HEAD`. Missing SSH signer
+  configuration is an environment failure and blocks the push gate. CLA remains
+  a PR-bot/human check.
+- A new explicit user response is required for every push. “Implement,”
+  “complete the plan,” a control choice, or contract approval is not push
+  approval.
+
 ## Durable evidence order
 
-Final verification → contract verifier and `/review` → focused E2E when
-applicable → walkthrough recording → signing check → human push approval → PR
-with evidence → CI subscription.
+Named baseline red → implementation → committed final verification → contract
+verifier → approved browser evidence → walkthrough recording → signing check →
+explicit human push approval → draft PR → BugBot → human review → CI
+subscription.
