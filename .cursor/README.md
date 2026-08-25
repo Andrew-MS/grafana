@@ -169,14 +169,31 @@ node .cursor/skills/convention-drift-review/scripts/collect-review-signals.mjs -
   into cited proposals, or into nothing at all.
   `.github/workflows/context-drift-report.yml` runs both weekly.
 
-Both are Node because Node is already a hard dependency of this repository,
+All four are Node because Node is already a hard dependency of this repository,
 while `python3` is absent from stock Windows and from macOS without Xcode
 command line tools, and pure bash would need `grep -P` and `realpath`, both
-GNU-only. Both carry a `--self-test`.
+GNU-only. Each carries a `--self-test`.
+
+### Where their state lives
+
+Nowhere in this repository, on purpose. None of the four scripts writes a file.
+
+- `check-bounds.mjs` reads its bounds from the **`Change-Bounds:` trailer on the
+  tip commit**, not from a config file. The declaration travels with the commit
+  it describes, appears in `git log` and on the pull request, and cannot drift
+  out of sync with it. Amending the commit moves the declaration with it.
+- The drift collectors are **stateless**. Their window comes from `--since`,
+  their coverage globs are parsed live from the convention map's routing table,
+  and their output goes to stdout. The weekly workflow pipes that into a single
+  tracking issue, commenting on the existing one rather than opening another.
+
+So "have we already reported this?" is answered by querying open issues, which
+GitHub maintains anyway. A state file would be one more thing to keep correct,
+that goes stale, conflicts on merge, and lies after a manual edit.
 
 `lefthook` runs the reference guard on staged `.cursor` files and the bounds
 check on push; install it with `make lefthook-install`.
-`.github/workflows/cursor-artifacts.yml` runs both on any PR touching
+`.github/workflows/cursor-artifacts.yml` runs all four on any PR touching
 `.cursor/**`, which is the direction the pre-commit hook cannot see: a cited
 path moved by an unrelated change.
 
