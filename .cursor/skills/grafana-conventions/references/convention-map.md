@@ -68,9 +68,17 @@ The final column lists likely checks to inspect. CI remains authoritative.
   sources remain authoritative; do not copy their prose into this index.
 - Update a row only when routing changes: a new authority, owner, skill, path,
   or likely check—not whenever wording changes in an authority.
+- A new scoped `AGENTS.md`, skill, or agent needs a row here. Nothing detects an
+  unindexed convention: the reference guard only checks paths already cited, so
+  a convention this map has never heard of fails no check. The root `AGENTS.md`
+  carries the proactive reminder; this section is the rule.
+- Neither the reminder nor the guard survives someone simply not remembering.
+  The `convention-drift-review` skill runs on a schedule, reports where merged
+  work has outrun this map, and proposes cited rows. It never edits an
+  authority, and it proposes nothing when it finds nothing.
 - Every discovery packet records the base SHA it verified. If implementation
   starts from a materially different SHA, re-run only the affected row.
-- `.cursor/skills/grafana-conventions/scripts/check-references.sh` catches moved
+- `.cursor/skills/grafana-conventions/scripts/check-references.mjs` catches moved
   or deleted paths. It cannot detect semantic changes, so a contradiction found
   at runtime becomes an explicit packet question and a separately reviewed
   index update.

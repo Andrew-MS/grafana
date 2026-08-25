@@ -1,0 +1,49 @@
+name: Cursor workflow artifacts
+
+on:
+  pull_request:
+    paths:
+      - '.cursor/**'
+      - '.github/workflows/cursor-artifacts.yml'
+      - '.github/workflows/context-drift-report.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  check:
+    name: Cursor artifact guards
+    # ubuntu-latest, not the org-scoped labels other workflows use, so this also
+    # runs on forks.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # clone the repository
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Use pinned Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Script syntax
+        run: node --check .cursor/skills/*/scripts/*.mjs
+
+      # The pre-commit hook only fires on the *citing* file, so it never notices
+      # when a cited repository path is moved or deleted by an unrelated change.
+      # This job closes that direction.
+      - name: Repository references resolve
+        run: node .cursor/skills/grafana-conventions/scripts/check-references.mjs
+
+      - name: Guard self-tests
+        run: |
+          node .cursor/skills/grafana-conventions/scripts/check-references.mjs --self-test
+          node .cursor/skills/grafana-implementation/scripts/check-bounds.mjs --self-test
+          node .cursor/skills/convention-drift-review/scripts/collect-drift-signals.mjs --self-test
+          node .cursor/skills/convention-drift-review/scripts/collect-review-signals.mjs --self-test
