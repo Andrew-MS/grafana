@@ -32,9 +32,28 @@ out_of_bounds:
 
 Every row must be resolved before CreatePlan.
 
-| Decision | Options considered | Recommendation | Your choice | Why |
-| -------- | ------------------ | -------------- | ----------- | --- |
-|          |                    |                |             |     |
+| Decision | Why it matters | Options considered | Agent assessment and recommendation | Your choice |
+| -------- | -------------- | ------------------ | ----------------------------------- | ----------- |
+|          |                |                    |                                     |             |
+
+### Risk and rollout assessment
+
+The agent fills this from repository evidence. The user is not expected to
+classify technical risk.
+
+| Signal                    | Finding | Meaning |
+| ------------------------- | ------- | ------- |
+| User reach                |         |         |
+| Data/persistence          |         |         |
+| API/schema/security       |         |         |
+| Interaction/accessibility |         |         |
+| Verification confidence   |         |         |
+| Rollback                  |         |         |
+| Owner rollout policy      |         |         |
+
+**Technical risk classification:** low / medium / high
+
+**Rollout recommendation:** direct / feature toggle / owner confirmation required
 
 ### Scope and non-goals
 

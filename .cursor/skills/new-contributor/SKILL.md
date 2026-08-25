@@ -49,8 +49,11 @@ When attached to a message in built-in Plan Mode:
 3. **Disambiguate** unclear scope and conflicting patterns using
    `references/tradeoffs.md`. Present one decision at a time in interview form:
    user impact, Option A/B, recommendation, cost/risk, and what would change the
-   recommendation. Ask the user to choose or accept the recommendation. Evidence
-   tier, control/API choice, scope, and rollout decisions may not remain blank.
+   recommendation. Explain what the user gains, gives up, and leaves the team to
+   maintain. Classify technical risk from repository evidence; do not ask a
+   first-time contributor to know whether something is high risk. Ask the user
+   to choose product scope or accept the recommendation. Evidence tier,
+   control/API choice, scope, and rollout decisions may not remain blank.
 4. **Contract** only after Understand, Discover, and Disambiguate are complete.
    First show a decision recap and confirm there are no unanswered questions.
    Call CreatePlan once. Put the human-facing approval summary at the top and

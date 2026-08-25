@@ -37,12 +37,28 @@ out_of_bounds:
 
 ### Decisions
 
-| Decision       | Options considered                         | Recommendation     | Your choice        | Why                                                             |
-| -------------- | ------------------------------------------ | ------------------ | ------------------ | --------------------------------------------------------------- |
-| Clear control  | Button, IconButton, clickable Icon         | IconButton         | IconButton         | Compact semantic control; do not copy clickable Icon            |
-| Keyboard scope | Change Tab behavior or preserve it         | Preserve           | Preserve           | Keyboard traversal is a separate blast radius                   |
-| Evidence tier  | Unit only, unit + walkthrough, focused E2E | Unit + walkthrough | Unit + walkthrough | All behavior is deterministic except the real-host confirmation |
-| Rollout        | Feature toggle or direct                   | Direct             | Direct             | Additive local UI with no persistence or migration              |
+| Decision       | Why it matters                                   | Options considered                         | Agent assessment and recommendation                                               | Your choice        |
+| -------------- | ------------------------------------------------ | ------------------------------------------ | --------------------------------------------------------------------------------- | ------------------ |
+| Clear control  | Discoverability versus input space               | Button, IconButton, clickable Icon         | IconButton: compact semantic control; do not copy clickable Icon                  | IconButton         |
+| Keyboard scope | Changes accessibility behavior in every host     | Change Tab behavior or preserve it         | Preserve: keyboard traversal is a separate, broader contract                      | Preserve           |
+| Evidence tier  | Affects review confidence and future maintenance | Unit only, unit + walkthrough, focused E2E | Unit + walkthrough: behavior is deterministic; host layout needs one visual check | Unit + walkthrough |
+| Rollout        | Affects release overhead and rollback            | Feature toggle or direct                   | Direct: additive local UI, no persistence/API/migration, easy revert              | Direct             |
+
+### Risk and rollout assessment
+
+| Signal                    | Finding                                     | Meaning                                   |
+| ------------------------- | ------------------------------------------- | ----------------------------------------- |
+| User reach                | Shared picker across several flows          | Broad visibility, but one bounded control |
+| Data/persistence          | None                                        | No migration or corruption risk           |
+| API/schema/security       | None                                        | Frontend-only release                     |
+| Interaction/accessibility | Adds pointer control; Tab remains unchanged | No existing keyboard behavior changes     |
+| Verification confidence   | Unit-observable plus real-host walkthrough  | Small evidence gap, closed manually       |
+| Rollback                  | Revert one feature commit                   | Easy rollback                             |
+| Owner rollout policy      | No staged-rollout precedent found           | Direct release unless owner objects       |
+
+**Technical risk classification:** low
+
+**Rollout recommendation:** direct
 
 ### Scope and non-goals
 

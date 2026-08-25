@@ -58,6 +58,15 @@ status: current phase, completed phases, current work, the one decision needed
 from the user (or none), the next gate, and whether code has changed. Experienced
 contributors can ask for concise updates.
 
+Decision cards explain why the choice matters, what each option gains and gives
+up, team/reviewer impact, the agent's evidence-backed recommendation, and what
+would change it. The agent classifies technical risk from reach, persistence,
+architecture, interaction behavior, verification confidence, rollback, and
+owner policy. The contributor chooses product scope or accepts the
+recommendation; they are not expected to know whether a change is "high risk."
+Changes with different risk profiles are split rather than bundled into one
+rollout decision.
+
 ### Lane 1: contract
 
 1. Select built-in **Plan Mode**.
