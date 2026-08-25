@@ -19,6 +19,126 @@ The conventions themselves are **not** here. They live in the directory-scoped
 `AGENTS.md` files owned by the teams that own those directories. These skills
 route to them and never restate them.
 
+## Architecture
+
+```mermaid
+flowchart TB
+    classDef auth fill:#e0e7ff,stroke:#4f46e5,color:#1e1b4b
+    classDef idx fill:#fef3c7,stroke:#d97706,color:#451a03
+    classDef skill fill:#d1fae5,stroke:#059669,color:#064e3b
+    classDef det fill:#fee2e2,stroke:#dc2626,color:#450a0a
+    classDef guar fill:#1e293b,stroke:#0f172a,color:#f8fafc
+    classDef hum fill:#f3e8ff,stroke:#9333ea,color:#3b0764
+
+    subgraph AUTH["AUTHORITIES — owned by the teams, never copied"]
+        direction LR
+        AG["13 scoped<br/>AGENTS.md"]
+        CG["contribute/<br/>style guides"]
+        CO["CODEOWNERS"]
+        WFL["workflows +<br/>change-detection"]
+        SRC["code +<br/>co-located tests"]
+    end
+
+    MAP["convention-map.md<br/><i>index only</i><br/>path → authority, owner, skills, checks"]
+
+    RES["convention-resolver<br/>readonly subagent<br/><i>exactly one pass</i>"]
+    PKT["Discovery packet<br/><i>decision-complete</i><br/>every contested option resolved"]
+
+    HUM["HUMAN<br/>outcome · scope · tradeoffs"]
+
+    subgraph WORK["WORKFLOW — where judgement lives"]
+        direction LR
+        NC["new-contributor<br/>Plan Mode"]
+        GI["grafana-implementation<br/>Agent Mode"]
+    end
+
+    subgraph DET["DETERMINISTIC — no model involved"]
+        direction LR
+        REF["check-references"]
+        BND["check-bounds"]
+        LH["lefthook"]
+        CI["CI"]
+    end
+
+    BP["BRANCH PROTECTION — server-side<br/>no agent has a vote"]
+
+    subgraph LOOP["FEEDBACK — weekly"]
+        direction LR
+        DS["collect-drift-signals<br/><i>git</i>"]
+        RS["collect-review-signals<br/><i>human PR comments</i>"]
+        CDR["convention-drift-review"]
+    end
+
+    MAP -.->|routes to, never restates| AG
+    RES --> MAP
+    RES --> AUTH
+    RES ==> PKT
+    PKT ==> NC
+    NC <==> HUM
+    NC ==> GI
+    GI ==> DET
+    DET ==> BP
+    HUM ==> BP
+
+    GI -.merged work.-> DS
+    GI -.review threads.-> RS
+    DS --> CDR
+    RS --> CDR
+    CDR ==>|proposes, never applies| MAP
+
+    class AG,CG,CO,WFL,SRC auth
+    class MAP,PKT idx
+    class RES,NC,GI,CDR,DS,RS skill
+    class REF,BND,LH,CI det
+    class BP guar
+    class HUM hum
+```
+
+Four properties the diagram is making claims about, each of which is checkable:
+
+- **The index routes, it does not restate.** That dotted edge is why a team
+  rewording their own `AGENTS.md` needs no change here, and why the maintenance
+  protocol says not to update a row for wording.
+- **Discovery is one pass.** The resolver reads authorities and the index once
+  and returns a packet. The parent does not search before it, and implementation
+  does not search after it.
+- **Judgement and determinism do not mix.** Nothing in the deterministic band
+  runs a model; nothing in the workflow band is treated as assurance.
+- **The loop closes.** Merged work and human review comments feed back into the
+  index, so it does not depend on its author remembering to update it.
+
+## Where each control applies
+
+```mermaid
+flowchart LR
+    classDef gate fill:#fee2e2,stroke:#dc2626,color:#450a0a
+    classDef hard fill:#1e293b,stroke:#0f172a,color:#f8fafc
+    classDef hum fill:#f3e8ff,stroke:#9333ea,color:#3b0764
+    classDef work fill:#d1fae5,stroke:#059669,color:#064e3b
+
+    R["Request"] --> P["Plan Mode<br/>interview + 1 resolver pass"]
+    P --> H1["HUMAN<br/>approves plan"]
+    H1 --> I["Implement<br/>red test first"]
+    I --> V["Verify<br/>plan-named commands"]
+    V --> C["lefthook<br/>pre-commit"]
+    C --> B["pre-push<br/>Change-Bounds"]
+    B --> PR["Draft PR"]
+    PR --> BB["BugBot<br/>source review"]
+    PR --> CIx["CI<br/>authoritative"]
+    BB --> BP["BRANCH PROTECTION<br/>GH006 blocks direct push"]
+    CIx --> BP
+    BP --> M["main"]
+
+    class R,P,I,V,PR work
+    class C,B,BB,CIx gate
+    class BP,M hard
+    class H1 hum
+```
+
+Red is advisory: lefthook is opt-in and `--no-verify` bypasses it, and BugBot
+does not block. Black is the only real guarantee, and it is the only one an agent
+holding a repository token cannot talk its way past.
+
 ## Using it
 
 Attach `new-contributor` in built-in Plan Mode for a first contribution. For any
