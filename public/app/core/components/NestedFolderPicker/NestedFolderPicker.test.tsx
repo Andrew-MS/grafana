@@ -4,6 +4,8 @@ import { setBackendSrv } from '@grafana/runtime';
 import { setupMockServer } from '@grafana/test-utils/server';
 import { getFolderFixtures, setTestFlags } from '@grafana/test-utils/unstable';
 import { backendSrv } from 'app/core/services/backend_srv';
+import { getGrafanaSearcher } from 'app/features/search/service/searcher';
+import { type DashboardQueryResult, type GrafanaSearcher, type QueryResponse } from 'app/features/search/service/types';
 import { resolveStarredFolders } from 'app/features/stars/folders';
 import { useStarredItems } from 'app/features/stars/hooks';
 
@@ -37,6 +39,32 @@ jest.mock('app/features/stars/folders', () => ({
   ...jest.requireActual('app/features/stars/folders'),
   resolveStarredFolders: jest.fn(),
 }));
+jest.mock('app/features/search/service/searcher', () => ({
+  getGrafanaSearcher: jest.fn(),
+}));
+
+const SEARCH_HIT_TITLE = 'Search Hit Folder';
+const SEARCH_HIT: DashboardQueryResult = {
+  kind: 'folder',
+  name: SEARCH_HIT_TITLE,
+  uid: 'search-hit-folder',
+  url: '/dashboards/f/search-hit-folder',
+  panel_type: '',
+  tags: [],
+  location: '',
+  ds_uid: [],
+  score: 0,
+  explain: {},
+};
+
+function searchResponse(hits: DashboardQueryResult[]): QueryResponse {
+  return {
+    view: {
+      map: (mapper: (item: DashboardQueryResult) => unknown) => hits.map(mapper),
+      dataFrame: { meta: {} },
+    },
+  } as QueryResponse;
+}
 
 describe('NestedFolderPicker', () => {
   const mockOnChange = jest.fn();
@@ -45,6 +73,8 @@ describe('NestedFolderPicker', () => {
   const useStarredItemsMock = useStarredItems as jest.Mock;
   const resolveStarredFoldersMock = resolveStarredFolders as jest.Mock;
   const useFoldersQueryMock = useFoldersQuery as jest.Mock;
+  const getGrafanaSearcherMock = jest.mocked(getGrafanaSearcher);
+  const searchMock = jest.fn();
 
   beforeAll(() => {
     window.HTMLElement.prototype.scrollIntoView = function () {};
@@ -71,6 +101,9 @@ describe('NestedFolderPicker', () => {
     resolveStarredFoldersMock.mockResolvedValue([
       { kind: 'folder', uid: 'starred-folder-1', title: 'Starred Folder One' },
     ]);
+
+    searchMock.mockResolvedValue(searchResponse([]));
+    getGrafanaSearcherMock.mockReturnValue({ search: searchMock } as unknown as GrafanaSearcher);
   });
 
   afterAll(() => {
@@ -254,6 +287,38 @@ describe('NestedFolderPicker', () => {
     // Select the first child
     await user.keyboard('{ArrowDown}{Enter}');
     expect(mockOnChange).toHaveBeenCalledWith(folderA_folderC.item.uid, folderA_folderC.item.title);
+  });
+
+  it('does not show a Clear search action when the query is empty', async () => {
+    const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+
+    await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+    await screen.findByLabelText('Dashboards');
+
+    expect(screen.getByPlaceholderText('Search folders')).toHaveValue('');
+    expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+  });
+
+  it('clears the search query, restores the Dashboards tree, and keeps focus in the search input', async () => {
+    searchMock.mockResolvedValue(searchResponse([SEARCH_HIT]));
+    const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+
+    await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+    const searchInput = await screen.findByPlaceholderText('Search folders');
+    await screen.findByLabelText('Dashboards');
+
+    await user.type(searchInput, 'hit', { skipClick: true });
+
+    expect(await screen.findByRole('button', { name: 'Clear search' })).toBeInTheDocument();
+    expect(await screen.findByLabelText(SEARCH_HIT_TITLE)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Dashboards')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+    expect(searchInput).toHaveValue('');
+    expect(await screen.findByLabelText('Dashboards')).toBeInTheDocument();
+    expect(screen.queryByLabelText(SEARCH_HIT_TITLE)).not.toBeInTheDocument();
+    expect(searchInput).toHaveFocus();
   });
 
   it('shows an error when folder browsing fails', async () => {
