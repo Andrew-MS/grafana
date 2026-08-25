@@ -43,6 +43,9 @@ Do not stash an implementation to create retroactive red evidence.
 - Auto stack detection uses changed file extensions.
 - Frontend checks are targeted Jest, ESLint, Prettier, and i18n when locale
   output changed.
+- Pass `--typecheck` when the conventions packet requires full TypeScript
+  checking, such as public type, selector signature, or cast changes. Do not run
+  the monorepo typecheck by reflex.
 - Backend checks are targeted package tests, gofmt, and golangci-lint when
   available.
 - E2E is opt-in and requires an explicit `GRAFANA_URL`; the script never starts

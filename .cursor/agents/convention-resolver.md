@@ -49,6 +49,7 @@ CODEOWNERS:
 Current likely checks:
 Skills to load:
 Exact targeted commands:
+Typecheck required: yes | no — <reason>
 Verified at SHA:
 Unresolved questions: none | <question and bounded search scope>
 

@@ -54,7 +54,9 @@ When attached to a message in built-in Plan Mode:
    maintain. Classify technical risk from repository evidence; do not ask a
    first-time contributor to know whether something is high risk. Ask the user
    to choose product scope or accept the recommendation. Evidence tier,
-   control/API choice, scope, and rollout decisions may not remain blank.
+   control/API choice, scope, rollout, and delivery-policy decisions may not
+   remain blank. Delivery policy is `auto-draft-on-green` or
+   `manual-push-approval`.
 4. **Contract** only after Understand, Discover, and Disambiguate are complete.
    First show a decision recap and confirm there are no unanswered questions.
    Call CreatePlan once. Put the human-facing approval summary at the top and
@@ -62,7 +64,10 @@ When attached to a message in built-in Plan Mode:
    authoritative contract. Do not write `.cursor/contracts/` in Plan Mode and
    never ask the user to edit YAML.
 5. Stop at the native plan approval UI. Clicking **Build** approves the complete
-   plan for implementation but never approves a future push.
+   plan for implementation. It also pre-authorizes a feature-branch draft PR
+   only when the plan explicitly selects `auto-draft-on-green` and every
+   universal implementation gate passes. It never authorizes `main`, ready
+   status, or merge.
 
 Plan Mode is the tool-level boundary. Do not switch modes or edit production
 files while the contract is incomplete or unapproved.

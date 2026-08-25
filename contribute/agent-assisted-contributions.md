@@ -78,7 +78,8 @@ rollout decision.
    Disambiguate. It should show the current phase, completed work, decisions
    needed from you, and what happens next.
 5. Answer every decision-bearing question in interview form. CreatePlan is not
-   a fallback for asking questions.
+   a fallback for asking questions. Choose `auto-draft-on-green` or
+   `manual-push-approval` as the delivery policy.
 6. Review the human-facing outcome, decisions, scope, and evidence summary at
    the top of the plan; the discovery packet remains in the appendix.
 7. The final saved Cursor plan is the authoritative contract. Click **Build** to
@@ -100,10 +101,12 @@ Plan Mode prevents production edits in this lane.
    `HEAD`.
 7. Run the contract verifier and the approved browser evidence.
 8. Record the walkthrough in the same agent that owns the browser and recording.
-9. Check the commit signature and ask a new, explicit push question. Build,
-   implementation, and earlier approvals never count.
-10. Push only after that answer, open a draft PR, and run BugBot before
-    requesting human review. Use `/review` only as the documented fallback.
+9. Check the commit signature and apply the approved delivery policy. Auto-draft
+   pushes only a feature branch after all AC, deterministic/manual evidence,
+   contract, security, signature, and clean-tree gates pass. Manual delivery
+   asks a new explicit push question.
+10. Open a draft PR and run BugBot before requesting human review. Auto-draft
+    never marks ready or merges. Use `/review` only as the documented fallback.
 11. Put the approved plan, outcome-and-acceptance review, deviation log,
     verification table, full `verify.json`, and recording in the PR body.
 12. Subscribe to CI; do not replace it with agent judgment.
@@ -172,7 +175,9 @@ own their `AGENTS.md`, code, tests, and guides.
   trusted `gpg.ssh.allowedSignersFile`; missing verifier configuration is an
   environment failure, not an unsigned commit. CLA status is only available
   through the PR process.
-- Agents stop before every push for human approval.
+- Agents apply the plan's delivery policy before every push. Manual delivery
+  requires a new explicit approval. Auto-draft on green is pre-authorized only
+  for a feature-branch draft PR after every required gate passes.
 
 ## Fork bootstrap and CI reality
 
@@ -250,7 +255,7 @@ or locator problems during the interview.
 | 10      | Red test, implementation, generation, commit, final verification; start focused E2E early                          |
 | 3       | Contract verifier; explain BugBot as the draft-PR source reviewer                                                  |
 | 3       | Browser walkthrough and recording                                                                                  |
-| 2       | Signature, human push approval, PR evidence, CI subscription                                                       |
+| 2       | Signature, selected delivery gate, PR evidence, CI subscription                                                    |
 | 5       | Limits, measurement, and Stage 2                                                                                   |
 
 Five minutes remain unallocated for questions or a slow command.
@@ -288,9 +293,10 @@ The final design came from rejected approaches:
 - A generic custom source reviewer was cut. The contract verifier checks
   acceptance evidence; BugBot reviews the draft PR; `/review` is the fallback.
 - Broad edit-blocking hooks remain out of scope because Plan Mode provides the
-  contract boundary. Dogfood showed that prompt-only push approval can still be
-  inferred incorrectly; a narrowly scoped pre-push approval hook is now a
-  justified follow-up, not a rejected idea.
+  contract boundary. Delivery is plan-selected: `auto-draft-on-green` or
+  `manual-push-approval`. Lefthook and `verify.json` are the hard local gates.
+  A narrowly scoped pre-push hook remains a possible follow-up for the manual
+  path, not the current enforcement.
 - Bug-fix demo targets were rejected in favor of additive, visible feature
   work.
 - Sticky dashboard tabs were rejected as the implementation target because a
@@ -307,8 +313,8 @@ Known limits:
   workflow does not scan their directory.
 - `verify.json` proves commands exited successfully; browser-only behavior still
   requires browser evidence.
-- Stateful browser recording and push approval must remain with the owning
-  agent; background handoffs cannot inherit those permissions or recording
-  state safely.
+- Stateful browser recording and the selected delivery gate must remain with
+  the owning agent; background handoffs cannot inherit those permissions or
+  recording state safely.
 - Fork CI may be absent.
 - Business impact needs a baseline and multiple contributions.

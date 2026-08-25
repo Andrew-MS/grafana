@@ -5,6 +5,7 @@ status: draft
 change_type: feature
 stack: frontend
 requested_by: support
+delivery_policy: auto-draft-on-green
 created_at: '2026-08-25T00:00:00Z'
 approved_at:
 approved_by:
@@ -37,12 +38,13 @@ out_of_bounds:
 
 ### Decisions
 
-| Decision       | Why it matters                                   | Options considered                         | Agent assessment and recommendation                                               | Your choice        |
-| -------------- | ------------------------------------------------ | ------------------------------------------ | --------------------------------------------------------------------------------- | ------------------ |
-| Clear control  | Discoverability versus input space               | Button, IconButton, clickable Icon         | IconButton: compact semantic control; do not copy clickable Icon                  | IconButton         |
-| Keyboard scope | Changes accessibility behavior in every host     | Change Tab behavior or preserve it         | Preserve: keyboard traversal is a separate, broader contract                      | Preserve           |
-| Evidence tier  | Affects review confidence and future maintenance | Unit only, unit + walkthrough, focused E2E | Unit + walkthrough: behavior is deterministic; host layout needs one visual check | Unit + walkthrough |
-| Rollout        | Affects release overhead and rollback            | Feature toggle or direct                   | Direct: additive local UI, no persistence/API/migration, easy revert              | Direct             |
+| Decision       | Why it matters                                     | Options considered                         | Agent assessment and recommendation                                               | Your choice         |
+| -------------- | -------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------- | ------------------- |
+| Clear control  | Discoverability versus input space                 | Button, IconButton, clickable Icon         | IconButton: compact semantic control; do not copy clickable Icon                  | IconButton          |
+| Keyboard scope | Changes accessibility behavior in every host       | Change Tab behavior or preserve it         | Preserve: keyboard traversal is a separate, broader contract                      | Preserve            |
+| Evidence tier  | Affects review confidence and future maintenance   | Unit only, unit + walkthrough, focused E2E | Unit + walkthrough: behavior is deterministic; host layout needs one visual check | Unit + walkthrough  |
+| Rollout        | Affects release overhead and rollback              | Feature toggle or direct                   | Direct: additive local UI, no persistence/API/migration, easy revert              | Direct              |
+| Draft delivery | Controls whether implementation pauses before push | Auto-draft on green or manual approval     | Auto-draft: every required check and AC review must pass; feature branch only     | Auto-draft on green |
 
 ### Risk and rollout assessment
 
@@ -70,7 +72,9 @@ out_of_bounds:
 - **Deterministic:** Named red test, targeted Jest, lint, format, and i18n.
 - **Manual:** Save-drawer walkthrough showing clear, restored tree, and focus.
 - **CI authority:** Current frontend, i18n, and owner-gated workflows.
-- **Approval effect:** Build starts test-first implementation; push still requires separate approval.
+- **Approval effect:** Build starts test-first implementation. Auto-draft on
+  green pre-authorizes a feature-branch draft PR after every required gate
+  passes.
 
 The approved Cursor plan remains the review baseline. Tactical implementation
 deviations are logged against it. Only an outcome, acceptance, non-goal, or
@@ -93,6 +97,7 @@ material-risk change requires a human-approved amendment.
 | Ownership               | Frontend navigation                                                                                    | `.github/CODEOWNERS`                                                                                                                                         |
 | Skills                  | Conventions, frontend testing, and selector reuse                                                      | `grafana-conventions`, `frontend-testing-strategy`, `add-e2e-selectors`                                                                                      |
 | Targeted commands       | Co-located Jest, ESLint, and i18n extraction                                                           | section 6                                                                                                                                                    |
+| Typecheck required      | no                                                                                                     | No public type, selector, or cast change                                                                                                                     |
 | Verified at             | Record the current base SHA during a real Plan run                                                     | `git rev-parse HEAD`                                                                                                                                         |
 | Unresolved              | None                                                                                                   | decisions above                                                                                                                                              |
 

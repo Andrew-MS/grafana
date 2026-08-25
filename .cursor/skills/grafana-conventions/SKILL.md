@@ -34,7 +34,8 @@ Stop when the packet names:
 - no more than two exemplars;
 - test helpers or fixtures;
 - owner and current checks;
-- skills and exact targeted commands;
+- skills and exact targeted commands, including whether full `yarn typecheck`
+  is required;
 - base SHA and any explicitly unresolved question.
 
 Use one readonly `convention-resolver` subagent. Do not repeat its broad searches

@@ -9,6 +9,7 @@ OUT=""
 MODE=""
 BASELINE_RED=""
 PRINT_ONLY=false
+TYPECHECK=false
 E2E_SPEC=""
 E2E_PROJECT="dashboards"
 GRAFANA_URL_VALUE="${GRAFANA_URL:-}"
@@ -19,6 +20,7 @@ Usage:
   local-verify.sh --mode baseline|final --contract <slug-or-path>
     [--stack auto|frontend|backend|both] [--base <ref>] [--out <path>]
     [--baseline-red <source-file>:<test-file>] [--print-only]
+    [--typecheck]
     [--e2e <spec>] [--e2e-project <project>] [--grafana-url <url>]
 EOF
 }
@@ -32,6 +34,7 @@ while (($#)); do
     --mode) MODE="${2:?missing --mode value}"; shift 2 ;;
     --baseline-red) BASELINE_RED="${2:?missing --baseline-red value}"; shift 2 ;;
     --print-only) PRINT_ONLY=true; shift ;;
+    --typecheck) TYPECHECK=true; shift ;;
     --e2e) E2E_SPEC="${2:?missing --e2e value}"; shift 2 ;;
     --e2e-project) E2E_PROJECT="${2:?missing --e2e-project value}"; shift 2 ;;
     --grafana-url) GRAFANA_URL_VALUE="${2:?missing --grafana-url value}"; shift 2 ;;
@@ -295,6 +298,10 @@ if [[ "$STACK" == "frontend" || "$STACK" == "both" ]]; then
 
   if ((${#FORMAT_FILES[@]})); then
     run_check "format" "true" "yarn prettier --check $(quote_join "${FORMAT_FILES[@]}")"
+  fi
+
+  if $TYPECHECK; then
+    run_check "typecheck" "true" "yarn typecheck"
   fi
 
   if printf '%s\n' "${CHANGED_FILES[@]}" | rg -q '^public/locales/en-US/grafana\.json$'; then

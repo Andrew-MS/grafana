@@ -97,6 +97,9 @@ Prefer evidence that proves behavior rather than restating the implementation.
 - Unit test versus E2E based on the observable behavior.
 - Feature toggle versus direct release based on rollout risk, persistence, and
   migration—not simply because the change is new.
+- Auto-draft on green versus manual push approval. Auto-draft still requires
+  every acceptance criterion, deterministic gate, contract review, and
+  signature check to pass; it never marks ready or merges.
 - Frontend and backend in separate PRs because they deploy at different
   cadences.
 - Existing selector or accessible role query versus a new versioned selector.
@@ -105,13 +108,13 @@ Prefer evidence that proves behavior rather than restating the implementation.
 
 State which gates rely on instructions and which are enforced by tools:
 
-| Gate                    | Instruction-only risk                     | Preferred mechanism                                                  |
-| ----------------------- | ----------------------------------------- | -------------------------------------------------------------------- |
-| No code before contract | Agent may interpret urgency as permission | Built-in Plan Mode                                                   |
-| Red before production   | Agent may add test and source together    | `grafana-verify` refuses changed source                              |
-| Scope bounds            | Agent may widen the diff while debugging  | Contract verifier over changed paths                                 |
-| Push approval           | Agent or subagent may infer old approval  | New explicit push response; consider a narrow hook or human-run push |
-| CI success              | Agent may summarize local checks as CI    | Repository CI remains authoritative                                  |
+| Gate                    | Instruction-only risk                     | Preferred mechanism                                                                                             |
+| ----------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| No code before contract | Agent may interpret urgency as permission | Built-in Plan Mode                                                                                              |
+| Red before production   | Agent may add test and source together    | `grafana-verify` refuses changed source                                                                         |
+| Scope bounds            | Agent may widen the diff while debugging  | Contract verifier over changed paths                                                                            |
+| Delivery / push         | Agent or subagent may infer old approval  | Plan-selected `auto-draft-on-green` or `manual-push-approval`; Lefthook and `verify.json` remain the hard gates |
+| CI success              | Agent may summarize local checks as CI    | Repository CI remains authoritative                                                                             |
 
 When adherence has already failed in dogfood, do not describe another prompt as
 enforcement. Prefer a deterministic check, a product mode, a hook, or a human

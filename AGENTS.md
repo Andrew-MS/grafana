@@ -38,9 +38,9 @@ For every implementation—not only first contributions—load
 `grafana-implementation` after an approved plan or implementation brief exists.
 After **Build**, it consumes the approved discovery packet, enforces baseline-red
 before production edits for behavior changes, verifies committed `HEAD`, routes
-draft PRs through BugBot, and stops for explicit approval before every push. The
-workflow loads repository conventions and verification skills progressively
-from `.cursor/skills/`.
+draft PRs through BugBot, and applies the plan's delivery policy before every
+push. The workflow loads repository conventions and verification skills
+progressively from `.cursor/skills/`.
 
 ## Comments
 
@@ -49,7 +49,18 @@ from `.cursor/skills/`.
 
 ## Human Review Gates
 
-Before running `git push`, stop and get explicit human approval. When changes are ready, show a summary of changes and wait for instruction. "Open a PR" in a task description is intent, not permission to push without review.
+Before running `git push`, use one of two approved delivery policies:
+
+- **Manual:** show the final evidence summary and get explicit human approval.
+  "Open a PR," "implement," and "finish the task" are not push approval.
+- **Auto-draft on green:** an approved plan may pre-authorize pushing a feature
+  branch and opening a draft PR only after every acceptance criterion and
+  required deterministic/manual gate passes, contract verification passes,
+  required security review passes, the commit signature verifies, and the
+  verified tree is clean. A failed gate stops the push.
+
+Auto-draft never authorizes pushing `main`, marking a PR ready, or merging. Every
+subsequent push repeats the selected gate.
 
 ## Commands
 

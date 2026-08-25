@@ -1,6 +1,6 @@
 ---
 name: grafana-implementation
-description: Apply Grafana's universal implementation protocol to any approved plan or implementation brief: consume discovery once, work in bounds, prove behavior red-to-green, verify committed HEAD, review, gather evidence, and stop for push approval.
+description: Apply Grafana's universal implementation protocol to any approved plan or implementation brief: consume discovery once, work in bounds, prove behavior red-to-green, verify committed HEAD, review, gather evidence, and apply the plan's delivery policy.
 icon: code
 color: green
 ---
@@ -32,7 +32,8 @@ Require an approved Cursor plan or equivalent implementation brief containing:
 - in-bounds and out-of-bounds paths;
 - change type;
 - acceptance criteria;
-- evidence tier and targeted commands.
+- evidence tier and targeted commands;
+- delivery policy: `auto-draft-on-green` or `manual-push-approval`.
 
 If a field is missing, stop. Use Plan Mode and `new-contributor` for a guided
 interview, or resolve only the missing field with `grafana-conventions`. Do not
@@ -68,13 +69,17 @@ Never silently rewrite the original plan.
 
 ## 2. Verify
 
-1. Run required generators before commit; never hand-edit generated output.
-2. Commit the bounded implementation.
-3. Run `grafana-verify --mode final` against clean `HEAD`.
-4. The verified `head_sha` must be the commit offered for push.
-5. Run the readonly `contract-verifier` on the original approved plan and
+1. Confirm Lefthook is installed or run its equivalent deterministic
+   pre-commit commands: staged lint/format, applicable smoke typecheck, Go/CUE
+   formatting, and Cursor workflow reference/script checks.
+2. Run required generators before commit; never hand-edit generated output.
+3. Commit the bounded implementation.
+4. Run `grafana-verify --mode final` against clean `HEAD`, including conditional
+   full typecheck when the conventions packet requires it.
+5. The verified `head_sha` must be the commit offered for push.
+6. Run the readonly `contract-verifier` on the original approved plan and
    `verify.json`.
-6. For user-visible behavior, run the approved browser evidence. Keep browser,
+7. For user-visible behavior, run the approved browser evidence. Keep browser,
    server, recording, and artifact saving in one agent; do not hand off active
    recording state.
 
@@ -84,9 +89,9 @@ Never silently rewrite the original plan.
 - Run `/review-security` for authentication/authorization, secrets, sensitive
   data, unsafe HTML, external command/query construction, dependencies, or an
   explicitly security-sensitive plan.
-- After explicit push approval, open a draft PR and use BugBot as the default
-  source reviewer.
-- Address BugBot findings, reverify, and obtain approval before another push.
+- After the selected delivery gate, open a draft PR and use BugBot as the
+  default source reviewer.
+- Address BugBot findings and repeat all required gates before another push.
 - BugBot never replaces contract verification, deterministic checks, CI, or
   human merge judgment.
 
@@ -102,14 +107,23 @@ Never silently rewrite the original plan.
    - approved amendments, if any.
 3. Present final verification, contract-verifier result, browser evidence,
    security disposition, and BugBot plan.
-4. Ask a new, explicit push question. Plan approval, Build, implementation
-   requests, control choices, and "finish the task" never count as push
-   approval. Subagents and `/babysit` may not infer it.
-5. After approval, push and open the draft PR with the approved plan,
+4. Apply the plan's delivery policy:
+   - `auto-draft-on-green`: push the feature branch and open a draft PR without
+     another prompt only when every acceptance criterion (including manual
+     evidence) passes, every required final check passes, contract verification
+     passes, required security review passes, the commit signature verifies,
+     the tree is clean at the verified SHA, the target is not `main`, and no
+     material outcome/risk amendment is pending.
+   - `manual-push-approval`: ask a new, explicit push question. Plan approval,
+     Build, implementation requests, control choices, and "finish the task"
+     never count as push approval.
+   - If any auto-draft condition fails, stop and report the failed gate.
+     Subagents and `/babysit` may not infer approval.
+5. After the selected gate, push and open the draft PR with the approved plan,
    outcome-and-acceptance review, deviation log, verification table, full
    `verify.json`, and walkthrough evidence.
 6. Run BugBot, then request human review. Use `/subscribe` for CI and
-   `/babysit` for later activity; every push repeats this gate.
+   `/babysit` for later activity; every push repeats the selected delivery gate.
 
 ## Deterministic extension points
 
@@ -117,7 +131,6 @@ Never silently rewrite the original plan.
   integrity.
 - `grafana-verify`: baseline source guard and final committed-SHA evidence.
 - Contract verifier: path bounds and acceptance-to-evidence coverage.
-- Optional narrow Cursor hook: prevent `git push` without an approval marker.
 - Repository CI remains authoritative.
 
 ## Approved context boundary
