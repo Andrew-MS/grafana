@@ -198,6 +198,45 @@ describe('NestedFolderPicker', () => {
     expect(screen.getByLabelText(folderC.item.title)).toBeInTheDocument();
   });
 
+  describe('search', () => {
+    it('does not show a way back to the folder tree before a query is typed', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+      await screen.findByLabelText(folderA.item.title);
+
+      expect(screen.getByPlaceholderText('Search folders')).toHaveFocus();
+      expect(screen.queryByRole('button', { name: 'Show all folders' })).not.toBeInTheDocument();
+    });
+
+    it('returns to the folder tree from search without moving focus off the search field', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+      await screen.findByLabelText(folderA.item.title);
+
+      const searchInput = screen.getByPlaceholderText('Search folders');
+      await user.type(searchInput, 'Folder');
+
+      expect(searchInput).toHaveFocus();
+      expect(searchInput).toHaveValue('Folder');
+
+      // Search results are a flat list — the browse-mode tree roots are replaced.
+      await waitFor(() => {
+        expect(screen.queryByLabelText('Team folders')).not.toBeInTheDocument();
+      });
+
+      const showAllFolders = await screen.findByRole('button', { name: 'Show all folders' });
+      // mouseDown keeps focus on the search input; userEvent click would move it.
+      fireEvent.mouseDown(showAllFolders);
+
+      expect(searchInput).toHaveFocus();
+      expect(searchInput).toHaveValue('');
+      expect(await screen.findByLabelText('Team folders')).toBeInTheDocument();
+      expect(screen.getByLabelText('Dashboards')).toBeInTheDocument();
+      expect(screen.getByLabelText(folderA.item.title)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Show all folders' })).not.toBeInTheDocument();
+    });
+  });
+
   it('can expand and collapse a folder to show its children', async () => {
     const { user } = render(<NestedFolderPicker permission="view" onChange={mockOnChange} />);
 
