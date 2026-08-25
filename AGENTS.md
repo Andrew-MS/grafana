@@ -32,8 +32,13 @@ For a first contribution, attach the `new-contributor` skill in Plan Mode. It
 interviews the user, narrates each phase, invokes the readonly
 `convention-resolver` once, and resolves every human decision before publishing
 the Cursor plan. The human-facing approval summary appears before the technical
-appendix. After the user clicks **Build**, load `new-contributor` again in Agent
-Mode and continue test-first from the approved plan's discovery packet. The
+appendix.
+
+For every implementation—not only first contributions—load
+`grafana-implementation` after an approved plan or implementation brief exists.
+After **Build**, it consumes the approved discovery packet, enforces baseline-red
+before production edits for behavior changes, verifies committed `HEAD`, routes
+draft PRs through BugBot, and stops for explicit approval before every push. The
 workflow loads repository conventions and verification skills progressively
 from `.cursor/skills/`.
 

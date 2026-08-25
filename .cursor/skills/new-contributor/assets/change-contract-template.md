@@ -70,7 +70,8 @@ classify technical risk.
 ### Approval effect
 
 Clicking **Build** approves this complete contract and starts test-first
-implementation. It does not approve commit push, PR readiness, or merge.
+implementation through `grafana-implementation`. It does not approve commit
+push, PR readiness, or merge.
 
 ---
 
@@ -149,6 +150,9 @@ The frontmatter globs are consumed by verification.
 **Approved files:**
 
 **Required skills:**
+
+`grafana-implementation` plus only the stack-specific skills named in the
+discovery packet.
 
 **Done:**
 

@@ -133,9 +133,9 @@ expected.
 
 ### G. Implementation handoff
 
-Create the feature branch from the fork's updated `main`. Load the frontend
-testing skill and the conventions frontend reference. Generate i18n output before
-the implementation commit.
+After Build, load `grafana-implementation`, the frontend testing skill, and the
+conventions frontend reference. Create the feature branch from the fork's
+updated `main`. Generate i18n output before the implementation commit.
 
 ### H. Post-PR log
 

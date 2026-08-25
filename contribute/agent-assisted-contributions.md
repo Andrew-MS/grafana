@@ -31,7 +31,7 @@ standard without the owning teams.
 | --------------------------------------- | ----------------------------------------------------------------- |
 | Built-in Plan Mode                      | Tool-level boundary for discovery, design, and contract creation  |
 | `new-contributor` skill in Plan Mode    | Guided product interview, decisions, and contract structure       |
-| `new-contributor` skill after **Build** | Test-first implementation from the approved discovery packet      |
+| `grafana-implementation` skill          | Universal test-first delivery protocol after any approved plan    |
 | `grafana-conventions` skill             | Path-to-authority resolver and stack-specific context index       |
 | `convention-resolver` readonly subagent | One search-budgeted discovery packet, isolated from the main chat |
 | `grafana-verify` skill                  | Targeted commands and machine-readable evidence                   |
@@ -43,7 +43,8 @@ standard without the owning teams.
 
 No project `modes.json` is required or documented. Custom Mode remains an
 optional persistence choice for unusually long implementations; the first-time
-path uses built-in Plan → Build → Agent.
+path uses built-in Plan → Build → Agent, then the same
+`grafana-implementation` protocol used by experienced contributors.
 
 Official Cursor documentation:
 
@@ -89,7 +90,7 @@ Plan Mode prevents production edits in this lane.
 ### Lane 2: implementation
 
 1. Click **Build**, which moves the approved plan into Agent Mode.
-2. Load `/new-contributor` again. The approved plan is the deliberate handoff.
+2. Load `/grafana-implementation`. The approved plan is the deliberate handoff.
 3. Contributor creates any machine-readable contract projection automatically;
    the user never edits YAML.
 4. Read the discovery packet and its named files. Do not repeat repository-wide
@@ -214,7 +215,8 @@ an enabled group has no dashboards.
 Use a fresh Cloud Agent created from the prebuilt environment. Before the
 interview:
 
-- confirm `/new-contributor` appears in Plan and Agent modes;
+- confirm `/new-contributor` appears in Plan Mode and
+  `/grafana-implementation` appears in Agent Mode;
 - confirm `grafana-conventions` and `convention-resolver` are discoverable;
 - confirm the draft-contract precondition refuses implementation;
 - confirm pinned Node, `node_modules`, and Playwright Chromium are available;
