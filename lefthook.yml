@@ -24,10 +24,16 @@ pre-commit:
       stage_fixed: true
 
     cursor-workflow:
-      glob: '.cursor/{skills,agents}/**/*.{md,sh}'
+      glob: '.cursor/**/*.{md,mjs}'
       run: |
-        bash -n .cursor/skills/grafana-conventions/scripts/*.sh &&
-        .cursor/skills/grafana-conventions/scripts/check-references.sh
+        node --check .cursor/skills/grafana-conventions/scripts/check-references.mjs &&
+        node --check .cursor/skills/grafana-implementation/scripts/check-bounds.mjs &&
+        node --check .cursor/skills/convention-drift-review/scripts/collect-drift-signals.mjs &&
+        node --check .cursor/skills/convention-drift-review/scripts/collect-review-signals.mjs &&
+        node .cursor/skills/grafana-conventions/scripts/check-references.mjs &&
+        node .cursor/skills/grafana-implementation/scripts/check-bounds.mjs --self-test &&
+        node .cursor/skills/convention-drift-review/scripts/collect-drift-signals.mjs --self-test &&
+        node .cursor/skills/convention-drift-review/scripts/collect-review-signals.mjs --self-test
 
     typecheck-smoke:
       glob: '{public/app/**/__smoke__/**,public/app/**/*.smoke.ts,scripts/cuj-smoke.ts,tsconfig.smoke.json}'
@@ -57,3 +63,10 @@ pre-commit:
       glob: '*devenv/dev-dashboards/**'
       files: git diff --name-only --cached --diff-filter=ACMRD
       run: make gen-jsonnet && git add devenv/jsonnet/dev-dashboards.libsonnet
+
+pre-push:
+  commands:
+    # A local gate, not a guarantee: lefthook is opt-in and `--no-verify`
+    # bypasses it. The guarantee for delivery is branch protection on main.
+    change-bounds:
+      run: node .cursor/skills/grafana-implementation/scripts/check-bounds.mjs

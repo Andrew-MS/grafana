@@ -90,16 +90,34 @@ evidence file.
 
 ## 3. Review
 
-- Before push, run `/review` only when the user requests local review.
+Three layers, deliberately different jobs. This is not "more reviewers means
+more quality" — each one catches a class the others structurally cannot.
+
+| Layer               | When                    | Owns                                                                                                             |
+| ------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Plan-named commands | Before commit           | Does the requested behaviour work                                                                                |
+| `/review`           | Before push, on request | Acceptance semantics: does the diff deliver the approved outcome, and did anything land that no criterion covers |
+| BugBot              | On the draft PR         | Source review: bugs, framework interactions, anti-patterns, weak tests                                           |
+
+- Keep `/review` scoped to acceptance. It is not a second source reviewer and
+  must never be described or narrated as BugBot.
 - Run `/review-security` for authentication/authorization, secrets, sensitive
   data, unsafe HTML, external command/query construction, dependencies, or an
   explicitly security-sensitive plan.
-- After the selected delivery gate, open a draft PR and use BugBot as the
-  default source reviewer.
+- BugBot is the default source reviewer and runs on the draft PR, before human
+  exposure.
 - Address BugBot findings and repeat the plan-named commands, Lefthook, and
-  acceptance check before another push.
+  acceptance check before another push. Branch protection dismisses stale
+  approvals automatically; do not treat a pre-fix approval as current.
 - BugBot never replaces the approved plan, Lefthook, CI, or human merge
   judgment.
+
+The dogfood run is the worked example. Deterministic tests proved the requested
+behaviour. `/review` then caught Escape misrouting when the clear control held
+focus. BugBot then caught what neither could see: `IconButton`'s `tooltip` prop
+wraps the child in `Tooltip`, which `cloneElement`s it and forces `tabIndex: 0`,
+silently discarding `tabIndex={-1}`. Thirty-two passing acceptance tests missed
+it, because it was never a stated criterion.
 
 ## 4. PR
 
@@ -115,7 +133,37 @@ evidence file.
    - approved amendments, if any.
 3. Present command results, Lefthook/commit result, browser evidence, security
    disposition, and BugBot plan.
-4. Apply the plan's delivery policy:
+4. Declare the bounds. Put a `Change-Bounds:` trailer on the tip commit naming
+   the paths this branch touched:
+
+   ```text
+   Change-Bounds: public/app/core/components/NestedFolderPicker/* public/locales/*
+   ```
+
+   This is a declaration made after implementation, not a prediction made
+   before it. If discovery took the work somewhere the plan did not anticipate,
+   widen the trailer with `git commit --amend` and say why in the PR. Widening
+   is always allowed; widening silently is not. `lefthook` `pre-push` compares
+   the trailer to `git diff --name-only`.
+
+   Git only parses the **last** paragraph of a commit message as trailers, so
+   `Change-Bounds:` must sit in the same block as `Co-authored-by:` and any
+   other trailer, with no blank line between them. A blank line silently turns
+   it back into prose and the hook will reject the push.
+
+5. **Delivery policy — the canonical rule. Everything else links here.**
+
+   The _guarantee_ is server-side. Branch protection on `main` blocks direct
+   pushes, requires a pull request, and dismisses stale approvals on every new
+   commit. No agent has a vote in it. Whether an approving review is also
+   required is per-repository configuration; check it rather than assume it, and
+   never report a control the repository does not actually have.
+
+   The local `pre-push` hook is a _gate_, not a guarantee: lefthook is opt-in
+   (`make lefthook-install`) and `--no-verify` bypasses it. Never describe it as
+   enforcement.
+
+   Apply the plan's selected policy:
    - `auto-draft-on-green`: push the feature branch and open a draft PR without
      another prompt only when every acceptance criterion (including manual
      evidence) passes, every plan-named command passes, Lefthook/commit
@@ -127,20 +175,38 @@ evidence file.
      never count as push approval.
    - If any auto-draft condition fails, stop and report the failed gate.
      Subagents and `/babysit` may not infer approval.
-5. After the selected gate, push and open the draft PR with the approved plan,
+
+   Neither policy ever authorizes `main`, ready status, or merge. The human
+   action that moves a change forward is clicking **Ready for review** on the
+   draft PR.
+
+   This rule has failed in dogfood before — the run pushed three times against a
+   plan that said to ask first. That is why the assurance is server-side and
+   this paragraph is not.
+
+6. After the selected gate, push and open the draft PR with the approved plan,
    outcome-and-acceptance review, deviation log, command results, and
-   walkthrough evidence.
-6. Run BugBot, then request human review. Use `/subscribe` for CI and
-   `/babysit` for later activity; every push repeats the selected delivery gate.
+   walkthrough evidence. Include a short section per audience — PM, engineer,
+   QA, DevOps — so the one artifact everyone opens answers each of them.
+7. Run BugBot, then request human review. Use `/subscribe` for CI and
+   `/babysit` for later activity; every push repeats the selected delivery gate
+   and dismisses any prior approval.
 
 ## What already enforces the change
 
-- Lefthook pre-commit: lint, format, smoke typecheck, Go/CUE formatting, and
-  Cursor convention-reference integrity.
-- Plan-named repository commands: targeted tests and any extra checks the
-  discovery packet required.
-- `git diff --name-only` against the approved plan bounds.
-- Repository CI remains authoritative.
+Ordered by how much weight each one can actually carry.
+
+| Mechanism                                      | Kind                  | Ceiling                                           |
+| ---------------------------------------------- | --------------------- | ------------------------------------------------- |
+| Branch protection on `main`                    | Server-side guarantee | Only governs the protected branch                 |
+| Repository CI                                  | Server-side guarantee | Authoritative; fork runners may differ            |
+| BugBot on the draft PR                         | Server-side review    | Advisory, not blocking                            |
+| Lefthook pre-commit                            | Local gate            | Opt-in, `--no-verify` bypasses                    |
+| Lefthook pre-push `check-bounds.mjs`           | Local gate            | Path globs only; blind to in-file behaviour drift |
+| Plan-named repository commands                 | Evidence              | Only proves what a criterion named                |
+| Skill rules (test-first, discovery discipline) | Convention            | Instruction-only; no tool observes them           |
+
+Nothing in the bottom four rows is enforcement. Say so.
 
 ## Approved context boundary
 

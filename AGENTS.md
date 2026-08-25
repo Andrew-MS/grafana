@@ -4,12 +4,25 @@
 
 This file provides guidance to AI agents when working with code in the Grafana repository.
 
-**Directory-scoped agent files exist for specialized areas — read them when working in those directories:**
+**Directory-scoped agent files override this one for their subtree.** The
+nearest `AGENTS.md` wins; list them with `git ls-files '*AGENTS.md'`. Load-bearing
+examples: `docs/AGENTS.md` (documentation style),
+`public/app/features/alerting/unified/AGENTS.md` (alerting squad patterns),
+`pkg/storage/unified/AGENTS.md` (storage/search compatibility rules),
+`public/app/core/journeys/AGENTS.md` (Critical User Journey instrumentation).
 
-- `docs/AGENTS.md` — Documentation style guide (for work under `docs/`)
-- `public/app/features/alerting/unified/AGENTS.md` — Alerting squad patterns
-- `pkg/storage/unified/AGENTS.md` — Unified storage/search compatibility rules (for work under `pkg/storage/unified/`)
-- `public/app/core/journeys/AGENTS.md` — Critical User Journey instrumentation
+**When you change a convention, two things do not update themselves:**
+
+- **Adding or moving a scoped `AGENTS.md`, skill, or agent** — give it a routing
+  row in `.cursor/skills/grafana-conventions/references/convention-map.md`. The
+  reference guard only checks paths that `.cursor` files already cite, so a
+  brand-new convention is invisible to it: nothing fails, and nothing reminds
+  you. The full rule lives in that map's Maintenance protocol.
+- **Changing who owns a path, which skill applies, or which checks run** —
+  update that row's columns. Routing is what the map holds.
+
+Rewording an existing authority needs no map change. It is an index, not a copy;
+duplicating its prose is the drift the index exists to avoid.
 
 ## Project Overview
 
@@ -39,9 +52,8 @@ For every implementation—not only first contributions—load
 After **Build**, it consumes the approved discovery packet, writes the behavior
 test first, runs the plan's named repository commands, commits through Lefthook,
 compares the plan to `git diff --name-only` and command output, and routes draft
-PRs through BugBot. Delivery follows the plan's `auto-draft-on-green` or
-`manual-push-approval` policy. The workflow loads repository conventions
-progressively from `.cursor/skills/`.
+PRs through BugBot. The workflow loads repository conventions progressively from
+`.cursor/skills/`; see `.cursor/README.md` for what each artifact is and why.
 
 ## Comments
 
@@ -50,18 +62,20 @@ progressively from `.cursor/skills/`.
 
 ## Human Review Gates
 
-Before running `git push`, use one of two approved delivery policies:
+The guarantee is server-side. Branch protection on `main` blocks direct pushes,
+requires a pull request, and dismisses stale approvals on every new commit. Local
+hooks are gates, not guarantees — lefthook is opt-in and `--no-verify` bypasses
+it. What this fork configures, and where it is deliberately weaker than a real
+deployment, is recorded in `.cursor/README.md`.
 
-- **Manual:** show the final evidence summary and get explicit human approval.
-  "Open a PR," "implement," and "finish the task" are not push approval.
-- **Auto-draft on green:** an approved plan may pre-authorize pushing a feature
-  branch and opening a draft PR only after every acceptance criterion passes,
-  every plan-named command passes, Lefthook/commit succeeds, required security
-  review passes, the commit signature verifies, and the tree is clean. A failed
-  gate stops the push.
+Delivery policy is defined once, in
+`.cursor/skills/grafana-implementation/SKILL.md` §4. Do not restate it here or
+anywhere else; a rule repeated in eight files is a rule with no owner.
 
-Auto-draft never authorizes pushing `main`, marking a PR ready, or merging. Every
-subsequent push repeats the selected gate.
+Before `git push`: the tip commit needs a `Change-Bounds:` trailer naming the
+paths the branch touched. The `pre-push` hook compares it to
+`git diff --name-only`. Widen it with `git commit --amend` when the work moved —
+widening is fine, widening silently is not.
 
 ## Commands
 
