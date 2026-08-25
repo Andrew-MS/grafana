@@ -26,6 +26,14 @@ Grafana is a monitoring and observability platform. Go backend, TypeScript/React
 - Security: prevent XSS, SQL injection, command injection
 - Security issues should be reported via [Grafana's security issue reporting page](https://grafana.com/legal/report-a-security-issue/) and not directly in this repository.
 
+## Cursor contributor workflow
+
+For a first contribution, attach the `contributor` skill in Plan Mode to create a
+change contract before editing production files. After a human approves the
+contract, activate the same skill with **Use as Mode** and attach the approved
+contract for implementation. The workflow loads repository conventions and
+verification skills progressively from `.cursor/skills/`.
+
 ## Comments
 
 - Only add a comment when it explains **why** something is done or reveals non-obvious logic that a reader must know to safely change the code. If the code is self-explanatory, no comment is needed.

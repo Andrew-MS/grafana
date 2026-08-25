@@ -1,0 +1,63 @@
+# Grafana convention map
+
+Use this map during Discover to find likely authorities. It is an index, not a
+copy of CI. Confirm workflow triggers against
+[change detection](../../../../.github/actions/change-detection/action.yml) and
+each current workflow before writing the contract.
+
+## Source precedence
+
+Instructions and facts answer different questions.
+
+Instructions are ordered by scope:
+
+1. The nearest directory-scoped `AGENTS.md`.
+2. A skill explicitly named by that `AGENTS.md`.
+3. The root [`AGENTS.md`](../../../../AGENTS.md).
+4. Repository-wide guides indexed under
+   [`contribute/README.md`](../../../../contribute/README.md).
+5. [`contribute/create-pull-request.md`](../../../../contribute/create-pull-request.md)
+   for process. Its code examples lose to more specific and current guidance.
+
+Executable code, configuration, schemas, and co-located tests establish facts
+about current APIs and behavior. Choose exemplars only after applying the
+instructions above. An exemplar that conflicts with a scoped instruction is
+evidence of drift, not permission to copy it.
+
+For example, the pull-request guide still recommends legacy Redux factories,
+while the root instructions, the
+[Redux guide](../../../../contribute/style-guides/redux.md), and current code use
+Redux Toolkit. Likewise, a feature-toggle example that does not match the
+current struct in
+[`pkg/services/featuremgmt/models.go`](../../../../pkg/services/featuremgmt/models.go)
+cannot override the compiler.
+
+## Initial routing rows
+
+The final column lists likely checks to inspect. CI remains authoritative.
+
+| Path | Authorities | Nearest scoped instructions | Skills | Ownership | Likely checks to confirm |
+|---|---|---|---|---|---|
+| `public/app/plugins/panel/**` | [Frontend guide](../../../../contribute/style-guides/frontend.md) | [`public/app/plugins/panel/AGENTS.md`](../../../../public/app/plugins/panel/AGENTS.md) | `frontend-testing-strategy`, `panel-testing-strategy`, `add-e2e-selectors` | `@grafana/dataviz-squad` plus per-panel owners | frontend unit, lint, opted-in coverage, i18n |
+| `public/app/features/{canvas,geo,dimensions,table,actions}/**` | [`public/app/features/AGENTS.md`](../../../../public/app/features/AGENTS.md) | same | all three frontend skills | `@grafana/dataviz-squad` | frontend unit, lint, opted-in coverage, i18n |
+| `public/app/features/alerting/**` | [Alerting instructions](../../../../public/app/features/alerting/unified/AGENTS.md) | same | `frontend-testing-strategy` | `@grafana/alerting-squad` | frontend unit, lint, i18n |
+| `public/app/core/journeys/**` | [Journey instructions](../../../../public/app/core/journeys/AGENTS.md) | same | none | `@grafana/dashboards-squad` | frontend unit, lint |
+| `packages/grafana-ui/**` | [Styling](../../../../contribute/style-guides/styling.md), [themes](../../../../contribute/style-guides/themes.md), [Storybook](../../../../contribute/style-guides/storybook.md) | [`packages/grafana-ui/AGENTS.md`](../../../../packages/grafana-ui/AGENTS.md) | frontend tests; panel tests for visualizations; selectors | frontend platform plus dataviz subdirectories | frontend unit, lint, Levitate, Storybook accessibility |
+| `packages/grafana-data/**` | Root instructions | none | `frontend-testing-strategy` | mixed, per file | frontend unit, lint, Levitate |
+| `packages/**` | [Frontend guide](../../../../contribute/style-guides/frontend.md) | none unless a closer file exists | `frontend-testing-strategy` | varies | frontend unit, lint, Levitate |
+| `pkg/services/**` | [Backend guide](../../../../contribute/backend/style-guide.md), [services](../../../../contribute/backend/services.md), [errors](../../../../contribute/backend/errors.md), [database](../../../../contribute/backend/database.md), [instrumentation](../../../../contribute/backend/instrumentation.md) | none unless a closer file exists | no backend test-quality skill | varies | backend unit, Go lint, backend code checks, integration |
+| `pkg/storage/unified/**` | [Unified storage instructions](../../../../pkg/storage/unified/AGENTS.md) | same | none | `@grafana/grafana-search-and-storage` | backend checks, unified-storage and multi-tenant compatibility |
+| `pkg/router/**` | [Router instructions](../../../../pkg/router/AGENTS.md) | same | none | `@grafana/grafana-app-platform-squad` | backend unit, Go lint |
+| `apps/**` | Root App SDK guidance | none | none | per app | backend unit, Go lint, Kubernetes code generation |
+| `docs/sources/**` | [Documentation instructions](../../../../docs/AGENTS.md) | same | none | docs tooling plus per-area owners | documentation CI, Vale, docs build, Prettier |
+| `e2e-playwright/**` | [Playwright guide](../../../../contribute/style-guides/e2e-playwright.md) | nearest suite `AGENTS.md`, when present | selectors; panel tests where applicable | per suite | PR E2E |
+| `kinds/**`, `**/*.cue` | Root code-generation guidance | none | none | as-code or dashboard owners | schema generation, backend and frontend checks |
+| `conf/defaults.ini` | [Pull-request guide](../../../../contribute/create-pull-request.md) | none | none | repository owners | defaults reminder; update defaults, sample, and docs together |
+| `public/app/core/**` except `journeys/` | [Frontend](../../../../contribute/style-guides/frontend.md) and [styling](../../../../contribute/style-guides/styling.md) guides | none | frontend tests and selectors | mixed per directory; `NestedFolderPicker` is frontend navigation | frontend unit, lint, owner-dependent coverage, i18n |
+
+## Known limits
+
+- The map does not cover every path or resolve mixed CODEOWNERS automatically.
+- A referenced workflow existing does not prove it still triggers for a glob.
+- When the map and the current repository disagree, record the mismatch in the
+  contract and update this map in a separate reviewed change.

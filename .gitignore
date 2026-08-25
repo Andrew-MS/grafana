@@ -79,6 +79,13 @@ public/css/*.min.css
 .devcontainer/
 .claude/*
 
+# Cursor agent contribution workflow. Re-include only versioned skills and agents;
+# contracts, verification evidence, and other local Cursor state stay ignored.
+!.cursor/
+.cursor/*
+!.cursor/skills/
+!.cursor/agents/
+
 # Claude skills everyone should have. Re-including a path under an ignored
 # directory requires un-ignoring each parent dir first (git won't descend into
 # an excluded dir), so ignore contents with /* and re-include step by step.
