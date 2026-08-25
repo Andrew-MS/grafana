@@ -1,11 +1,11 @@
 ---
 slug: folder-picker-clear-search
-title: "Folders: Add clear action to folder picker search"
+title: 'Folders: Add clear action to folder picker search'
 status: draft
 change_type: feature
 stack: frontend
 requested_by: support
-created_at: "2026-08-25T00:00:00Z"
+created_at: '2026-08-25T00:00:00Z'
 approved_at:
 approved_by:
 verify_passed: false
@@ -36,14 +36,14 @@ action keyboard-reachable.
 
 ## 2. Discovery evidence
 
-| Question | Finding | Repository evidence |
-|---|---|---|
-| Landing zone | Existing folder-picker search input | `public/app/core/components/NestedFolderPicker/NestedFolderPicker.tsx` |
-| Instructions | Root guidance; no scoped core instructions | `AGENTS.md` |
-| Exemplars | Existing clear-search controls disagree on control type | `packages/grafana-ui/src/components/FilterInput/FilterInput.tsx`, `public/app/features/dashboard/components/TransformationsEditor/TransformationsEditor.tsx` |
-| Test location | Extend the co-located test | `public/app/core/components/NestedFolderPicker/NestedFolderPicker.test.tsx` |
-| Ownership | Frontend navigation | `.github/CODEOWNERS` |
-| Skills | Frontend testing; inspect selector rules but reuse existing selectors | `frontend-testing-strategy`, `add-e2e-selectors` |
+| Question      | Finding                                                               | Repository evidence                                                                                                                                          |
+| ------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Landing zone  | Existing folder-picker search input                                   | `public/app/core/components/NestedFolderPicker/NestedFolderPicker.tsx`                                                                                       |
+| Instructions  | Root guidance; no scoped core instructions                            | `AGENTS.md`                                                                                                                                                  |
+| Exemplars     | Existing clear-search controls disagree on control type               | `packages/grafana-ui/src/components/FilterInput/FilterInput.tsx`, `public/app/features/dashboard/components/TransformationsEditor/TransformationsEditor.tsx` |
+| Test location | Extend the co-located test                                            | `public/app/core/components/NestedFolderPicker/NestedFolderPicker.test.tsx`                                                                                  |
+| Ownership     | Frontend navigation                                                   | `.github/CODEOWNERS`                                                                                                                                         |
+| Skills        | Frontend testing; inspect selector rules but reuse existing selectors | `frontend-testing-strategy`, `add-e2e-selectors`                                                                                                             |
 
 ## 3. Tradeoff decision
 
@@ -84,10 +84,10 @@ expected.
 
 ## 8. Assumptions
 
-| Assumption | Level | How to verify |
-|---|---|---|
+| Assumption                                                            | Level       | How to verify                                   |
+| --------------------------------------------------------------------- | ----------- | ----------------------------------------------- |
 | Existing search tests can await the debounce without console warnings | `must-hold` | Run targeted Jest twice and once with `CI=true` |
-| The Save drawer exposes this picker in a focused Playwright flow | `assumed` | Rehearse against a pre-warmed server |
+| The Save drawer exposes this picker in a focused Playwright flow      | `assumed`   | Rehearse against a pre-warmed server            |
 
 ## 9. Implementation handoff
 

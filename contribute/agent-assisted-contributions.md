@@ -27,17 +27,17 @@ standard without the owning teams.
 
 ## Cursor primitives
 
-| Primitive | Responsibility |
-|---|---|
-| Built-in Plan Mode | Tool-level boundary for discovery, design, and contract creation |
-| `contributor` skill attached in Plan Mode | Repository-specific questions, routing, and contract structure |
-| `contributor` skill activated with **Use as Mode** | Persistent implementation workflow after approval |
-| `grafana-first-pr` skill | Path-to-authority map and stack-specific contribution checks |
-| `grafana-verify` skill | Targeted commands and machine-readable evidence |
-| `contract-verifier` readonly subagent | Acceptance, scope, and evidence completeness only |
-| `/review` | Source-code bugs, anti-patterns, and weak tests |
-| `/walkthrough-artifacts` | User-visible browser evidence before push |
-| `/subscribe` | Observe real CI without polling |
+| Primitive                                          | Responsibility                                                   |
+| -------------------------------------------------- | ---------------------------------------------------------------- |
+| Built-in Plan Mode                                 | Tool-level boundary for discovery, design, and contract creation |
+| `contributor` skill attached in Plan Mode          | Repository-specific questions, routing, and contract structure   |
+| `contributor` skill activated with **Use as Mode** | Persistent implementation workflow after approval                |
+| `grafana-first-pr` skill                           | Path-to-authority map and stack-specific contribution checks     |
+| `grafana-verify` skill                             | Targeted commands and machine-readable evidence                  |
+| `contract-verifier` readonly subagent              | Acceptance, scope, and evidence completeness only                |
+| `/review`                                          | Source-code bugs, anti-patterns, and weak tests                  |
+| `/walkthrough-artifacts`                           | User-visible browser evidence before push                        |
+| `/subscribe`                                       | Observe real CI without polling                                  |
 
 No project `modes.json` is required or documented. A discovered skill can back
 a Custom Mode while selected.
@@ -84,11 +84,11 @@ Plan Mode prevents production edits in this lane.
 
 ## One contract, four audiences
 
-| Persona | Contract value |
-|---|---|
-| PM | Outcome, non-goals, tradeoff decision, and what would change it |
-| Engineer | Landing zone, exemplar, instructions, allowed paths, and implementation handoff |
-| QA | Acceptance criteria, reproduction commands, deterministic results, and walkthrough |
+| Persona           | Contract value                                                                                     |
+| ----------------- | -------------------------------------------------------------------------------------------------- |
+| PM                | Outcome, non-goals, tradeoff decision, and what would change it                                    |
+| Engineer          | Landing zone, exemplar, instructions, allowed paths, and implementation handoff                    |
+| QA                | Acceptance criteria, reproduction commands, deterministic results, and walkthrough                 |
 | DevOps / Platform | Ownership, likely checks confirmed from current workflows, signing, rollback, and context boundary |
 
 Working contract and verification files are ignored local scratch. The PR body
@@ -197,16 +197,16 @@ or locator problems during the interview.
 
 ## Forty-minute runbook
 
-| Minutes | Activity |
-|---|---|
-| 3 | Show a sticky-dashboard-tabs request the workflow declines because honest evidence requires a broad browser matrix |
-| 4 | Customer problem, architecture, and deliberately excluded primitives |
-| 10 | Live Understand → Discover → Disambiguate → approved contract |
-| 10 | Red test, implementation, generation, commit, final verification; start focused E2E early |
-| 3 | Contract verifier and `/review` |
-| 3 | Browser walkthrough and recording |
-| 2 | Signature, human push approval, PR evidence, CI subscription |
-| 5 | Limits, measurement, and Stage 2 |
+| Minutes | Activity                                                                                                           |
+| ------- | ------------------------------------------------------------------------------------------------------------------ |
+| 3       | Show a sticky-dashboard-tabs request the workflow declines because honest evidence requires a broad browser matrix |
+| 4       | Customer problem, architecture, and deliberately excluded primitives                                               |
+| 10      | Live Understand → Discover → Disambiguate → approved contract                                                      |
+| 10      | Red test, implementation, generation, commit, final verification; start focused E2E early                          |
+| 3       | Contract verifier and `/review`                                                                                    |
+| 3       | Browser walkthrough and recording                                                                                  |
+| 2       | Signature, human push approval, PR evidence, CI subscription                                                       |
+| 5       | Limits, measurement, and Stage 2                                                                                   |
 
 Five minutes remain unallocated for questions or a slow command.
 

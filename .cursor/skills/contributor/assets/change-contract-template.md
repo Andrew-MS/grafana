@@ -1,11 +1,11 @@
 ---
 slug: change-slug
-title: "Area: Describe the user-visible change"
+title: 'Area: Describe the user-visible change'
 status: draft
 change_type: feature
 stack: frontend
 requested_by: pm
-created_at: "YYYY-MM-DDTHH:MM:SSZ"
+created_at: 'YYYY-MM-DDTHH:MM:SSZ'
 approved_at:
 approved_by:
 verify_passed: false
@@ -31,23 +31,23 @@ out_of_bounds:
 
 ## 2. Discovery evidence
 
-| Question | Finding | Repository evidence |
-|---|---|---|
-| Landing zone |  | `<source-file>` |
-| Nearest instructions |  | `<nearest-instructions>` |
-| Authoritative guide |  | `<authoritative-guide>` |
-| Existing exemplar |  | `<exemplar-file>` |
-| Test location |  | `<test-file>` |
-| CODEOWNERS |  | `.github/CODEOWNERS` |
-| Current checks |  | `.github/workflows/...` |
-| Skills to load |  | `skill-name` |
+| Question             | Finding | Repository evidence      |
+| -------------------- | ------- | ------------------------ |
+| Landing zone         |         | `<source-file>`          |
+| Nearest instructions |         | `<nearest-instructions>` |
+| Authoritative guide  |         | `<authoritative-guide>`  |
+| Existing exemplar    |         | `<exemplar-file>`        |
+| Test location        |         | `<test-file>`            |
+| CODEOWNERS           |         | `.github/CODEOWNERS`     |
+| Current checks       |         | `.github/workflows/...`  |
+| Skills to load       |         | `skill-name`             |
 
 ## 3. Tradeoff decision
 
 | Option | Benefit | Cost or risk |
-|---|---|---|
-| A |  |  |
-| B |  |  |
+| ------ | ------- | ------------ |
+| A      |         |              |
+| B      |         |              |
 
 **Recommendation:**
 
@@ -93,9 +93,9 @@ The frontmatter globs are machine-readable.
 
 ## 8. Assumptions
 
-| Assumption | Level | How to verify |
-|---|---|---|
-|  | `must-hold` |  |
+| Assumption | Level       | How to verify |
+| ---------- | ----------- | ------------- |
+|            | `must-hold` |               |
 
 ## 9. Implementation handoff
 

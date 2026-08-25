@@ -17,13 +17,13 @@ manufacture alternatives for decisions already settled by scoped instructions.
 
 Use plain language:
 
-| | Option A | Option B |
-|---|---|---|
-| User benefit |  |  |
-| Pattern fit |  |  |
-| Implementation cost |  |  |
-| Evidence available |  |  |
-| Risk or rollback |  |  |
+|                     | Option A | Option B |
+| ------------------- | -------- | -------- |
+| User benefit        |          |          |
+| Pattern fit         |          |          |
+| Implementation cost |          |          |
+| Evidence available  |          |          |
+| Risk or rollback    |          |          |
 
 Then state:
 
