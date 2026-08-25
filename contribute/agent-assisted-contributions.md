@@ -125,7 +125,9 @@ workflow files during each contract; CI remains authoritative.
   explicitly sensitive contract.
 - Final verification runs on committed clean `HEAD`; its SHA must be the SHA
   pushed.
-- `git verify-commit HEAD` is signature proof. CLA status is only available
+- `git verify-commit HEAD` is signature proof. SSH signing also requires a
+  trusted `gpg.ssh.allowedSignersFile`; missing verifier configuration is an
+  environment failure, not an unsigned commit. CLA status is only available
   through the PR process.
 - Agents stop before every push for human approval.
 

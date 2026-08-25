@@ -44,6 +44,9 @@ contract. Do not preload every guide.
 3. For security-sensitive paths, run `/review-security`.
 4. Confirm the commit signature with `git verify-commit HEAD`; display it with
    `git log --show-signature -1`.
+   For SSH signatures, `gpg.ssh.allowedSignersFile` must point to the team's
+   trusted signer list. A missing verifier configuration is an environment
+   failure, not proof that the commit is unsigned.
 5. Explain that CLA status is checked by the PR bot and cannot be proven
    locally.
 6. Show the human the complete summary and stop for explicit push approval.
