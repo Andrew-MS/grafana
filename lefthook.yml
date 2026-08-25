@@ -23,6 +23,12 @@ pre-commit:
       run: yarn prettier --write {staged_files}
       stage_fixed: true
 
+    cursor-workflow:
+      glob: '.cursor/{skills,agents}/**/*.{md,sh}'
+      run: |
+        bash -n .cursor/skills/grafana-conventions/scripts/*.sh &&
+        .cursor/skills/grafana-conventions/scripts/check-references.sh
+
     typecheck-smoke:
       glob: '{public/app/**/__smoke__/**,public/app/**/*.smoke.ts,scripts/cuj-smoke.ts,tsconfig.smoke.json}'
       run: yarn typecheck:smoke

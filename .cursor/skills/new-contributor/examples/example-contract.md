@@ -5,10 +5,10 @@ status: draft
 change_type: feature
 stack: frontend
 requested_by: support
+delivery_policy: auto-draft-on-green
 created_at: '2026-08-25T00:00:00Z'
 approved_at:
 approved_by:
-verify_passed: false
 pr_url:
 head_sha:
 in_bounds:
@@ -37,12 +37,29 @@ out_of_bounds:
 
 ### Decisions
 
-| Decision       | Options considered                         | Recommendation     | Your choice        | Why                                                             |
-| -------------- | ------------------------------------------ | ------------------ | ------------------ | --------------------------------------------------------------- |
-| Clear control  | Button, IconButton, clickable Icon         | IconButton         | IconButton         | Compact semantic control; do not copy clickable Icon            |
-| Keyboard scope | Change Tab behavior or preserve it         | Preserve           | Preserve           | Keyboard traversal is a separate blast radius                   |
-| Evidence tier  | Unit only, unit + walkthrough, focused E2E | Unit + walkthrough | Unit + walkthrough | All behavior is deterministic except the real-host confirmation |
-| Rollout        | Feature toggle or direct                   | Direct             | Direct             | Additive local UI with no persistence or migration              |
+| Decision       | Why it matters                                     | Options considered                         | Agent assessment and recommendation                                               | Your choice         |
+| -------------- | -------------------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------- | ------------------- |
+| Clear control  | Discoverability versus input space                 | Button, IconButton, clickable Icon         | IconButton: compact semantic control; do not copy clickable Icon                  | IconButton          |
+| Keyboard scope | Changes accessibility behavior in every host       | Change Tab behavior or preserve it         | Preserve: keyboard traversal is a separate, broader contract                      | Preserve            |
+| Evidence tier  | Affects review confidence and future maintenance   | Unit only, unit + walkthrough, focused E2E | Unit + walkthrough: behavior is deterministic; host layout needs one visual check | Unit + walkthrough  |
+| Rollout        | Affects release overhead and rollback              | Feature toggle or direct                   | Direct: additive local UI, no persistence/API/migration, easy revert              | Direct              |
+| Draft delivery | Controls whether implementation pauses before push | Auto-draft on green or manual approval     | Auto-draft: every required check and AC review must pass; feature branch only     | Auto-draft on green |
+
+### Risk and rollout assessment
+
+| Signal                    | Finding                                     | Meaning                                   |
+| ------------------------- | ------------------------------------------- | ----------------------------------------- |
+| User reach                | Shared picker across several flows          | Broad visibility, but one bounded control |
+| Data/persistence          | None                                        | No migration or corruption risk           |
+| API/schema/security       | None                                        | Frontend-only release                     |
+| Interaction/accessibility | Adds pointer control; Tab remains unchanged | No existing keyboard behavior changes     |
+| Verification confidence   | Unit-observable plus real-host walkthrough  | Small evidence gap, closed manually       |
+| Rollback                  | Revert one feature commit                   | Easy rollback                             |
+| Owner rollout policy      | No staged-rollout precedent found           | Direct release unless owner objects       |
+
+**Technical risk classification:** low
+
+**Rollout recommendation:** direct
 
 ### Scope and non-goals
 
@@ -51,10 +68,16 @@ out_of_bounds:
 
 ### Evidence promise
 
-- **Deterministic:** Named red test, targeted Jest, lint, format, and i18n.
+- **Deterministic:** Named failing test, then the same Jest command green, plus lint, format, and i18n.
 - **Manual:** Save-drawer walkthrough showing clear, restored tree, and focus.
 - **CI authority:** Current frontend, i18n, and owner-gated workflows.
-- **Approval effect:** Build starts test-first implementation; push still requires separate approval.
+- **Approval effect:** Build starts test-first implementation. Auto-draft on
+  green pre-authorizes a feature-branch draft PR after every required gate
+  passes.
+
+The approved Cursor plan remains the review baseline. Tactical implementation
+deviations are logged against it. Only an outcome, acceptance, non-goal, or
+material-risk change requires a human-approved amendment.
 
 ---
 
@@ -73,6 +96,7 @@ out_of_bounds:
 | Ownership               | Frontend navigation                                                                                    | `.github/CODEOWNERS`                                                                                                                                         |
 | Skills                  | Conventions, frontend testing, and selector reuse                                                      | `grafana-conventions`, `frontend-testing-strategy`, `add-e2e-selectors`                                                                                      |
 | Targeted commands       | Co-located Jest, ESLint, and i18n extraction                                                           | section 6                                                                                                                                                    |
+| Typecheck required      | no                                                                                                     | No public type, selector, or cast change                                                                                                                     |
 | Verified at             | Record the current base SHA during a real Plan run                                                     | `git rev-parse HEAD`                                                                                                                                         |
 | Unresolved              | None                                                                                                   | decisions above                                                                                                                                              |
 
@@ -83,10 +107,10 @@ Only the frontmatter paths are approved. Changing keyboard traversal or
 
 ### C. Acceptance criteria
 
-1. [ ] `verify:test` — clearing empties the search value.
-2. [ ] `verify:test` — focus returns to the search input.
-3. [ ] `verify:test` — the clear action appears only for non-empty search.
-4. [ ] `verify:test` — clearing restores the browse-only `Dashboards` root.
+1. [ ] `test` — clearing empties the search value.
+2. [ ] `test` — focus returns to the search input.
+3. [ ] `test` — the clear action appears only for non-empty search.
+4. [ ] `test` — clearing restores the browse-only `Dashboards` root.
 5. [ ] `manual` — the same flow works in the dashboard Save drawer.
 
 ### D. Reproduction and evidence commands
@@ -99,8 +123,8 @@ yarn eslint --no-error-on-unmatched-pattern \
 yarn i18n-extract
 ```
 
-The baseline-red output must name the new test and show that the accessible
-Clear search action is absent.
+The first test run must fail on the new Clear search assertion while the
+source file is still unchanged from the base.
 
 ### E. Risk and rollback
 
@@ -117,11 +141,25 @@ expected.
 
 ### G. Implementation handoff
 
-Create the feature branch from the fork's updated `main`. Load the frontend
-testing skill and the conventions frontend reference. Generate i18n output before
-the implementation commit.
+After Build, load `grafana-implementation`, the frontend testing skill, and the
+conventions frontend reference. Create the feature branch from the fork's
+updated `main`. Generate i18n output before the implementation commit.
 
-### H. Post-PR log
+### H. Outcome and acceptance review
+
+| Plan item               | Result  | Evidence                      |
+| ----------------------- | ------- | ----------------------------- |
+| Original outcome        | pending | final walkthrough             |
+| Clear empties search    | pending | targeted Jest                 |
+| Focus remains in search | pending | targeted Jest and walkthrough |
+| Browse root returns     | pending | targeted Jest and walkthrough |
+| Non-goals               | pending | changed-files review          |
+
+**Implementation deviations:** none yet
+
+**Approved amendments:** none
+
+### I. Post-PR log
 
 - PR URL:
 - Head SHA:

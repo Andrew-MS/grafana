@@ -31,11 +31,12 @@ standard without the owning teams.
 | --------------------------------------- | ----------------------------------------------------------------- |
 | Built-in Plan Mode                      | Tool-level boundary for discovery, design, and contract creation  |
 | `new-contributor` skill in Plan Mode    | Guided product interview, decisions, and contract structure       |
-| `new-contributor` skill after **Build** | Test-first implementation from the approved discovery packet      |
+| `grafana-implementation` skill          | Universal test-first delivery protocol after any approved plan    |
 | `grafana-conventions` skill             | Path-to-authority resolver and stack-specific context index       |
 | `convention-resolver` readonly subagent | One search-budgeted discovery packet, isolated from the main chat |
-| `grafana-verify` skill                  | Targeted commands and machine-readable evidence                   |
-| `contract-verifier` readonly subagent   | Acceptance, scope, and evidence completeness only                 |
+| Lefthook                                | Existing local hard gate for lint, format, and index integrity    |
+| Plan-named repository commands          | Targeted tests and extra checks the discovery packet required     |
+| Approved Cursor plan                    | Outcome, bounds, and acceptance criteria used to review the diff  |
 | BugBot                                  | Default draft-PR review for bugs, anti-patterns, and weak tests   |
 | `/review`                               | Fallback when BugBot is unavailable or local review is requested  |
 | `/walkthrough-artifacts`                | User-visible browser evidence before push                         |
@@ -43,7 +44,8 @@ standard without the owning teams.
 
 No project `modes.json` is required or documented. Custom Mode remains an
 optional persistence choice for unusually long implementations; the first-time
-path uses built-in Plan → Build → Agent.
+path uses built-in Plan → Build → Agent, then the same
+`grafana-implementation` protocol used by experienced contributors.
 
 Official Cursor documentation:
 
@@ -58,6 +60,15 @@ status: current phase, completed phases, current work, the one decision needed
 from the user (or none), the next gate, and whether code has changed. Experienced
 contributors can ask for concise updates.
 
+Decision cards explain why the choice matters, what each option gains and gives
+up, team/reviewer impact, the agent's evidence-backed recommendation, and what
+would change it. The agent classifies technical risk from reach, persistence,
+architecture, interaction behavior, verification confidence, rollback, and
+owner policy. The contributor chooses product scope or accepts the
+recommendation; they are not expected to know whether a change is "high risk."
+Changes with different risk profiles are split rather than bundled into one
+rollout decision.
+
 ### Lane 1: contract
 
 1. Select built-in **Plan Mode**.
@@ -68,7 +79,8 @@ contributors can ask for concise updates.
    Disambiguate. It should show the current phase, completed work, decisions
    needed from you, and what happens next.
 5. Answer every decision-bearing question in interview form. CreatePlan is not
-   a fallback for asking questions.
+   a fallback for asking questions. Choose `auto-draft-on-green` or
+   `manual-push-approval` as the delivery policy.
 6. Review the human-facing outcome, decisions, scope, and evidence summary at
    the top of the plan; the discovery packet remains in the appendix.
 7. The final saved Cursor plan is the authoritative contract. Click **Build** to
@@ -80,26 +92,26 @@ Plan Mode prevents production edits in this lane.
 ### Lane 2: implementation
 
 1. Click **Build**, which moves the approved plan into Agent Mode.
-2. Load `/new-contributor` again. The approved plan is the deliberate handoff.
-3. Contributor creates any machine-readable contract projection automatically;
-   the user never edits YAML.
-4. Read the discovery packet and its named files. Do not repeat repository-wide
+2. Load `/grafana-implementation`. The approved plan is the deliberate handoff.
+3. Read the discovery packet and its named files. Do not repeat repository-wide
    discovery unless an explicit unresolved field remains.
-5. Edit tests only, then observe the named expected failure. Baseline
-   verification refuses production changes that already differ from the base.
-6. Implement only within approved paths.
-7. Generate required output, commit, and run final verification against clean
-   `HEAD`.
-8. Run the contract verifier and the approved browser evidence.
-9. Record the walkthrough in the same agent that owns the browser and recording.
-10. Check the commit signature and ask a new, explicit push question. Build,
-    implementation, and earlier approvals never count.
-    approvals never count.
-11. Push only after that answer, open a draft PR, and run BugBot before
-    requesting human review. Use `/review` only as the documented fallback.
-12. Put the contract, verification table, full `verify.json`, and recording in
-    the PR body.
-13. Subscribe to CI; do not replace it with agent judgment.
+4. Edit tests only. Confirm the production source is unchanged from the base,
+   run the plan-named test command, and read the named assertion failure.
+5. Implement only within approved paths or document tactical deviations.
+6. Run the remaining plan-named commands, generate required output, and commit
+   through Lefthook.
+7. Compare the approved plan to `git diff --name-only` and the command output.
+   Run the approved browser evidence when the plan requires it.
+8. Record the walkthrough in the same agent that owns the browser and recording.
+9. Check the commit signature and apply the approved delivery policy. Auto-draft
+   pushes only a feature branch after all AC, plan-named commands, Lefthook,
+   security, signature, and clean-tree gates pass. Manual delivery asks a new
+   explicit push question.
+10. Open a draft PR and run BugBot before requesting human review. Auto-draft
+    never marks ready or merges. Use `/review` only as the documented fallback.
+11. Put the approved plan, outcome-and-acceptance review, deviation log,
+    command results, and recording in the PR body.
+12. Subscribe to CI; do not replace it with agent judgment.
 
 ## One contract, four audiences
 
@@ -110,8 +122,15 @@ Plan Mode prevents production edits in this lane.
 | QA                | Acceptance criteria, reproduction commands, deterministic results, and walkthrough                 |
 | DevOps / Platform | Ownership, likely checks confirmed from current workflows, signing, rollback, and context boundary |
 
-Working contract and verification files are ignored local scratch. The PR body
-is their durable, shared destination.
+The PR body is the durable shared destination for the approved plan,
+outcome-and-acceptance matrix, documented tactical deviations, and command
+results.
+
+The original plan is a baseline, not an implementation prison. Files, helpers,
+commands, and internal approach may change when runtime evidence warrants it.
+Before PR, implementation compares that plan to `git diff --name-only` and the
+named command output. Outcome, acceptance, non-goal, or material-risk changes
+require a human-approved plan amendment.
 
 ## Maintaining the workflow
 
@@ -125,9 +144,14 @@ When a convention changes:
 4. Run:
 
    ```bash
-   .cursor/skills/grafana-verify/scripts/check-references.sh
-   bash -n .cursor/skills/grafana-verify/scripts/*.sh
+   .cursor/skills/grafana-conventions/scripts/check-references.sh
+   bash -n .cursor/skills/grafana-conventions/scripts/*.sh
    ```
+
+The existing opt-in Lefthook pre-commit configuration runs those two checks
+automatically when staged Cursor skills, agents, or scripts change. Install it
+with `make lefthook-install`. This hook protects the conventions index; it does
+not interpret product outcomes or acceptance criteria.
 
 The map's likely-checks column is a hint. Confirm actual triggers from current
 workflow files during each contract; CI remains authoritative.
@@ -146,13 +170,14 @@ own their `AGENTS.md`, code, tests, and guides.
 - Security review is risk-based: authentication, authorization, secrets,
   sensitive data, command/query construction, unsafe HTML, dependencies, or an
   explicitly sensitive contract.
-- Final verification runs on committed clean `HEAD`; its SHA must be the SHA
-  pushed.
+- Commit through Lefthook on a clean tree; the committed SHA is the SHA pushed.
 - `git verify-commit HEAD` is signature proof. SSH signing also requires a
   trusted `gpg.ssh.allowedSignersFile`; missing verifier configuration is an
   environment failure, not an unsigned commit. CLA status is only available
   through the PR process.
-- Agents stop before every push for human approval.
+- Agents apply the plan's delivery policy before every push. Manual delivery
+  requires a new explicit approval. Auto-draft on green is pre-authorized only
+  for a feature-branch draft PR after every required gate passes.
 
 ## Fork bootstrap and CI reality
 
@@ -205,7 +230,8 @@ an enabled group has no dashboards.
 Use a fresh Cloud Agent created from the prebuilt environment. Before the
 interview:
 
-- confirm `/new-contributor` appears in Plan and Agent modes;
+- confirm `/new-contributor` appears in Plan Mode and
+  `/grafana-implementation` appears in Agent Mode;
 - confirm `grafana-conventions` and `convention-resolver` are discoverable;
 - confirm the draft-contract precondition refuses implementation;
 - confirm pinned Node, `node_modules`, and Playwright Chromium are available;
@@ -226,10 +252,10 @@ or locator problems during the interview.
 | 3       | Show a sticky-dashboard-tabs request the workflow declines because honest evidence requires a broad browser matrix |
 | 4       | Customer problem, architecture, and deliberately excluded primitives                                               |
 | 10      | Guided Understand → one resolver pass → Disambiguate → all decisions → approved plan-contract                      |
-| 10      | Red test, implementation, generation, commit, final verification; start focused E2E early                          |
-| 3       | Contract verifier; explain BugBot as the draft-PR source reviewer                                                  |
+| 10      | Red test, implementation, generation, Lefthook commit, plan-named commands; start focused E2E early                |
+| 3       | Compare the plan to the diff and command output; explain BugBot as the draft-PR source reviewer                    |
 | 3       | Browser walkthrough and recording                                                                                  |
-| 2       | Signature, human push approval, PR evidence, CI subscription                                                       |
+| 2       | Signature, selected delivery gate, PR evidence, CI subscription                                                    |
 | 5       | Limits, measurement, and Stage 2                                                                                   |
 
 Five minutes remain unallocated for questions or a slow command.
@@ -240,7 +266,7 @@ Stage 1 records facts:
 
 - requester role, change type, stack, and creation time;
 - human approval time;
-- final verification result;
+- plan-named command results and Lefthook/commit result;
 - PR URL and the committed head SHA.
 
 It does not hand-copy review counts or CI conclusions. GitHub already owns
@@ -264,12 +290,16 @@ The final design came from rejected approaches:
 - A hand-maintained CI path map was cut because it would drift.
 - A shared `events.jsonl` was cut because it would conflict and duplicate
   GitHub.
-- A generic custom source reviewer was cut. The contract verifier checks
-  acceptance evidence; BugBot reviews the draft PR; `/review` is the fallback.
+- A generic custom source reviewer was cut. The approved plan plus
+  `git diff --name-only` and command output check acceptance; BugBot reviews
+  the draft PR; `/review` is the fallback.
+- A custom verify runner and `verify.json` receipt were cut because they
+  duplicated Lefthook, the plan's named repository commands, git, and CI.
 - Broad edit-blocking hooks remain out of scope because Plan Mode provides the
-  contract boundary. Dogfood showed that prompt-only push approval can still be
-  inferred incorrectly; a narrowly scoped pre-push approval hook is now a
-  justified follow-up, not a rejected idea.
+  contract boundary. Delivery is plan-selected: `auto-draft-on-green` or
+  `manual-push-approval`. Lefthook and CI are the hard local and remote gates.
+  A narrowly scoped pre-push hook remains a possible follow-up for the manual
+  path, not the current enforcement.
 - Bug-fix demo targets were rejected in favor of additive, visible feature
   work.
 - Sticky dashboard tabs were rejected as the implementation target because a
@@ -282,12 +312,12 @@ Known limits:
 - Project skill discovery depends on the supported Cursor surface and startup;
   direct file attachment remains the documented fallback.
 - Backend test-quality guidance remains tribal.
-- The verification scripts are manually checked because Grafana's shellcheck
-  workflow does not scan their directory.
-- `verify.json` proves commands exited successfully; browser-only behavior still
-  requires browser evidence.
-- Stateful browser recording and push approval must remain with the owning
-  agent; background handoffs cannot inherit those permissions or recording
-  state safely.
+- Test-first ordering is a skill rule, not a hook. An agent can still edit
+  source and test together.
+- Browser-only behavior still requires browser evidence. Command exit codes do
+  not prove layout, focus, or scrolling.
+- Stateful browser recording and the selected delivery gate must remain with
+  the owning agent; background handoffs cannot inherit those permissions or
+  recording state safely.
 - Fork CI may be absent.
 - Business impact needs a baseline and multiple contributions.

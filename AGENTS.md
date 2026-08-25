@@ -32,10 +32,16 @@ For a first contribution, attach the `new-contributor` skill in Plan Mode. It
 interviews the user, narrates each phase, invokes the readonly
 `convention-resolver` once, and resolves every human decision before publishing
 the Cursor plan. The human-facing approval summary appears before the technical
-appendix. After the user clicks **Build**, load `new-contributor` again in Agent
-Mode and continue test-first from the approved plan's discovery packet. The
-workflow loads repository conventions and verification skills progressively
-from `.cursor/skills/`.
+appendix.
+
+For every implementation—not only first contributions—load
+`grafana-implementation` after an approved plan or implementation brief exists.
+After **Build**, it consumes the approved discovery packet, writes the behavior
+test first, runs the plan's named repository commands, commits through Lefthook,
+compares the plan to `git diff --name-only` and command output, and routes draft
+PRs through BugBot. Delivery follows the plan's `auto-draft-on-green` or
+`manual-push-approval` policy. The workflow loads repository conventions
+progressively from `.cursor/skills/`.
 
 ## Comments
 
@@ -44,7 +50,18 @@ from `.cursor/skills/`.
 
 ## Human Review Gates
 
-Before running `git push`, stop and get explicit human approval. When changes are ready, show a summary of changes and wait for instruction. "Open a PR" in a task description is intent, not permission to push without review.
+Before running `git push`, use one of two approved delivery policies:
+
+- **Manual:** show the final evidence summary and get explicit human approval.
+  "Open a PR," "implement," and "finish the task" are not push approval.
+- **Auto-draft on green:** an approved plan may pre-authorize pushing a feature
+  branch and opening a draft PR only after every acceptance criterion passes,
+  every plan-named command passes, Lefthook/commit succeeds, required security
+  review passes, the commit signature verifies, and the tree is clean. A failed
+  gate stops the push.
+
+Auto-draft never authorizes pushing `main`, marking a PR ready, or merging. Every
+subsequent push repeats the selected gate.
 
 ## Commands
 

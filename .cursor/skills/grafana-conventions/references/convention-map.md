@@ -70,6 +70,7 @@ The final column lists likely checks to inspect. CI remains authoritative.
   or likely check—not whenever wording changes in an authority.
 - Every discovery packet records the base SHA it verified. If implementation
   starts from a materially different SHA, re-run only the affected row.
-- `check-references.sh` catches moved or deleted paths. It cannot detect semantic
-  changes, so a contradiction found at runtime becomes an explicit packet
-  question and a separately reviewed index update.
+- `.cursor/skills/grafana-conventions/scripts/check-references.sh` catches moved
+  or deleted paths. It cannot detect semantic changes, so a contradiction found
+  at runtime becomes an explicit packet question and a separately reviewed
+  index update.
