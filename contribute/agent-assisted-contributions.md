@@ -34,8 +34,9 @@ standard without the owning teams.
 | `grafana-implementation` skill          | Universal test-first delivery protocol after any approved plan    |
 | `grafana-conventions` skill             | Path-to-authority resolver and stack-specific context index       |
 | `convention-resolver` readonly subagent | One search-budgeted discovery packet, isolated from the main chat |
-| `grafana-verify` skill                  | Targeted commands and machine-readable evidence                   |
-| `contract-verifier` readonly subagent   | Acceptance, scope, and evidence completeness only                 |
+| Lefthook                                | Existing local hard gate for lint, format, and index integrity    |
+| Plan-named repository commands          | Targeted tests and extra checks the discovery packet required     |
+| Approved Cursor plan                    | Outcome, bounds, and acceptance criteria used to review the diff  |
 | BugBot                                  | Default draft-PR review for bugs, anti-patterns, and weak tests   |
 | `/review`                               | Fallback when BugBot is unavailable or local review is requested  |
 | `/walkthrough-artifacts`                | User-visible browser evidence before push                         |
@@ -94,21 +95,22 @@ Plan Mode prevents production edits in this lane.
 2. Load `/grafana-implementation`. The approved plan is the deliberate handoff.
 3. Read the discovery packet and its named files. Do not repeat repository-wide
    discovery unless an explicit unresolved field remains.
-4. Edit tests only, then observe the named expected failure. Baseline
-   verification refuses production changes that already differ from the base.
+4. Edit tests only. Confirm the production source is unchanged from the base,
+   run the plan-named test command, and read the named assertion failure.
 5. Implement only within approved paths or document tactical deviations.
-6. Generate required output, commit, and run final verification against clean
-   `HEAD`.
-7. Run the contract verifier and the approved browser evidence.
+6. Run the remaining plan-named commands, generate required output, and commit
+   through Lefthook.
+7. Compare the approved plan to `git diff --name-only` and the command output.
+   Run the approved browser evidence when the plan requires it.
 8. Record the walkthrough in the same agent that owns the browser and recording.
 9. Check the commit signature and apply the approved delivery policy. Auto-draft
-   pushes only a feature branch after all AC, deterministic/manual evidence,
-   contract, security, signature, and clean-tree gates pass. Manual delivery
-   asks a new explicit push question.
+   pushes only a feature branch after all AC, plan-named commands, Lefthook,
+   security, signature, and clean-tree gates pass. Manual delivery asks a new
+   explicit push question.
 10. Open a draft PR and run BugBot before requesting human review. Auto-draft
     never marks ready or merges. Use `/review` only as the documented fallback.
 11. Put the approved plan, outcome-and-acceptance review, deviation log,
-    verification table, full `verify.json`, and recording in the PR body.
+    command results, and recording in the PR body.
 12. Subscribe to CI; do not replace it with agent judgment.
 
 ## One contract, four audiences
@@ -120,16 +122,15 @@ Plan Mode prevents production edits in this lane.
 | QA                | Acceptance criteria, reproduction commands, deterministic results, and walkthrough                 |
 | DevOps / Platform | Ownership, likely checks confirmed from current workflows, signing, rollback, and context boundary |
 
-Verification files are ignored local scratch. The PR body is the durable shared
-destination for the approved plan, outcome-and-acceptance matrix, documented
-tactical deviations, and final evidence.
+The PR body is the durable shared destination for the approved plan,
+outcome-and-acceptance matrix, documented tactical deviations, and command
+results.
 
 The original plan is a baseline, not an implementation prison. Files, helpers,
 commands, and internal approach may change when runtime evidence warrants it.
-Before PR, the verifier confirms that the original outcome and every acceptance
-criterion are met, non-goals remain respected, and each deviation is explained.
-Outcome, acceptance, non-goal, or material-risk changes require a human-approved
-plan amendment.
+Before PR, implementation compares that plan to `git diff --name-only` and the
+named command output. Outcome, acceptance, non-goal, or material-risk changes
+require a human-approved plan amendment.
 
 ## Maintaining the workflow
 
@@ -143,14 +144,14 @@ When a convention changes:
 4. Run:
 
    ```bash
-   .cursor/skills/grafana-verify/scripts/check-references.sh
-   bash -n .cursor/skills/grafana-verify/scripts/*.sh
+   .cursor/skills/grafana-conventions/scripts/check-references.sh
+   bash -n .cursor/skills/grafana-conventions/scripts/*.sh
    ```
 
 The existing opt-in Lefthook pre-commit configuration runs those two checks
 automatically when staged Cursor skills, agents, or scripts change. Install it
-with `make lefthook-install`. This hook protects hard repository facts only; it
-does not attempt to interpret product outcomes or acceptance criteria.
+with `make lefthook-install`. This hook protects the conventions index; it does
+not interpret product outcomes or acceptance criteria.
 
 The map's likely-checks column is a hint. Confirm actual triggers from current
 workflow files during each contract; CI remains authoritative.
@@ -169,8 +170,7 @@ own their `AGENTS.md`, code, tests, and guides.
 - Security review is risk-based: authentication, authorization, secrets,
   sensitive data, command/query construction, unsafe HTML, dependencies, or an
   explicitly sensitive contract.
-- Final verification runs on committed clean `HEAD`; its SHA must be the SHA
-  pushed.
+- Commit through Lefthook on a clean tree; the committed SHA is the SHA pushed.
 - `git verify-commit HEAD` is signature proof. SSH signing also requires a
   trusted `gpg.ssh.allowedSignersFile`; missing verifier configuration is an
   environment failure, not an unsigned commit. CLA status is only available
@@ -252,8 +252,8 @@ or locator problems during the interview.
 | 3       | Show a sticky-dashboard-tabs request the workflow declines because honest evidence requires a broad browser matrix |
 | 4       | Customer problem, architecture, and deliberately excluded primitives                                               |
 | 10      | Guided Understand → one resolver pass → Disambiguate → all decisions → approved plan-contract                      |
-| 10      | Red test, implementation, generation, commit, final verification; start focused E2E early                          |
-| 3       | Contract verifier; explain BugBot as the draft-PR source reviewer                                                  |
+| 10      | Red test, implementation, generation, Lefthook commit, plan-named commands; start focused E2E early                |
+| 3       | Compare the plan to the diff and command output; explain BugBot as the draft-PR source reviewer                    |
 | 3       | Browser walkthrough and recording                                                                                  |
 | 2       | Signature, selected delivery gate, PR evidence, CI subscription                                                    |
 | 5       | Limits, measurement, and Stage 2                                                                                   |
@@ -266,7 +266,7 @@ Stage 1 records facts:
 
 - requester role, change type, stack, and creation time;
 - human approval time;
-- final verification result;
+- plan-named command results and Lefthook/commit result;
 - PR URL and the committed head SHA.
 
 It does not hand-copy review counts or CI conclusions. GitHub already owns
@@ -290,11 +290,14 @@ The final design came from rejected approaches:
 - A hand-maintained CI path map was cut because it would drift.
 - A shared `events.jsonl` was cut because it would conflict and duplicate
   GitHub.
-- A generic custom source reviewer was cut. The contract verifier checks
-  acceptance evidence; BugBot reviews the draft PR; `/review` is the fallback.
+- A generic custom source reviewer was cut. The approved plan plus
+  `git diff --name-only` and command output check acceptance; BugBot reviews
+  the draft PR; `/review` is the fallback.
+- A custom verify runner and `verify.json` receipt were cut because they
+  duplicated Lefthook, the plan's named repository commands, git, and CI.
 - Broad edit-blocking hooks remain out of scope because Plan Mode provides the
   contract boundary. Delivery is plan-selected: `auto-draft-on-green` or
-  `manual-push-approval`. Lefthook and `verify.json` are the hard local gates.
+  `manual-push-approval`. Lefthook and CI are the hard local and remote gates.
   A narrowly scoped pre-push hook remains a possible follow-up for the manual
   path, not the current enforcement.
 - Bug-fix demo targets were rejected in favor of additive, visible feature
@@ -309,10 +312,10 @@ Known limits:
 - Project skill discovery depends on the supported Cursor surface and startup;
   direct file attachment remains the documented fallback.
 - Backend test-quality guidance remains tribal.
-- The verification scripts are manually checked because Grafana's shellcheck
-  workflow does not scan their directory.
-- `verify.json` proves commands exited successfully; browser-only behavior still
-  requires browser evidence.
+- Test-first ordering is a skill rule, not a hook. An agent can still edit
+  source and test together.
+- Browser-only behavior still requires browser evidence. Command exit codes do
+  not prove layout, focus, or scrolling.
 - Stateful browser recording and the selected delivery gate must remain with
   the owning agent; background handoffs cannot inherit those permissions or
   recording state safely.

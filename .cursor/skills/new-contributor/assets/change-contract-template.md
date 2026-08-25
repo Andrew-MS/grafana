@@ -9,7 +9,6 @@ delivery_policy: auto-draft-on-green
 created_at: 'YYYY-MM-DDTHH:MM:SSZ'
 approved_at:
 approved_by:
-verify_passed: false
 pr_url:
 head_sha:
 in_bounds:
@@ -108,9 +107,9 @@ unless it is explicitly named and approved.
 | Verified at               |          | `<base SHA>`                  |
 | Unresolved questions      | `none`   | `<question and search scope>` |
 
-### B. Machine-readable scope bounds
+### B. Scope bounds
 
-The frontmatter globs are consumed by verification.
+Implementation compares `git diff --name-only` to these globs.
 
 **In bounds:**
 
@@ -122,8 +121,8 @@ The frontmatter globs are consumed by verification.
 
 ### C. Acceptance criteria
 
-1. [ ] `verify:test` —
-2. [ ] `verify:test` —
+1. [ ] `test` —
+2. [ ] `test` —
 3. [ ] `manual` —
 
 ### D. Reproduction and evidence commands
@@ -132,7 +131,7 @@ The frontmatter globs are consumed by verification.
 # Exact targeted commands QA can repeat.
 ```
 
-**Baseline-red assertion to observe:**
+**First test run must fail on:**
 
 **Manual evidence:**
 

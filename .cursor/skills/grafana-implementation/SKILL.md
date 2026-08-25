@@ -1,6 +1,6 @@
 ---
 name: grafana-implementation
-description: Apply Grafana's universal implementation protocol to any approved plan or implementation brief: consume discovery once, work in bounds, prove behavior red-to-green, verify committed HEAD, review, gather evidence, and apply the plan's delivery policy.
+description: Apply Grafana's universal implementation protocol to any approved plan or implementation brief: consume discovery once, work in bounds, prove behavior red-to-green with the plan's commands, commit through Lefthook, review, and apply the delivery policy.
 icon: code
 color: green
 ---
@@ -57,29 +57,34 @@ Never silently rewrite the original plan.
    in the discovery packet.
 2. Do not repeat repository-wide Discover. Search locally only when runtime
    evidence contradicts the packet; reopen planning if it is stale.
-3. For `feature` and `bugfix` changes, edit tests only. Run
-   `grafana-verify --mode baseline`; it must refuse if production source already
-   differs from the base. Read the named expected assertion failure.
-4. Implement only after baseline evidence exists and only inside approved
-   paths.
+3. For `feature` and `bugfix` changes, edit tests only. Confirm the production
+   source is unchanged from the base (`git diff --quiet <base> -- <source>`).
+   Run the plan-named test command. Read the named assertion failure. Do not
+   implement until that failure is observed.
+4. Implement only after that red result exists and only inside approved paths.
 5. `docs`, `refactor`, and `test-backfill` changes may be explicitly exempt from
-   behavior-red evidence, but still require acceptance criteria.
+   a failing behavior test, but still require acceptance criteria.
 6. Any scope, API, rollout, or evidence-tier change returns to human
    Disambiguate before editing.
 
 ## 2. Verify
 
-1. Confirm Lefthook is installed or run its equivalent deterministic
-   pre-commit commands: staged lint/format, applicable smoke typecheck, Go/CUE
-   formatting, and Cursor workflow reference/script checks.
-2. Run required generators before commit; never hand-edit generated output.
-3. Commit the bounded implementation.
-4. Run `grafana-verify --mode final` against clean `HEAD`, including conditional
-   full typecheck when the conventions packet requires it.
-5. The verified `head_sha` must be the commit offered for push.
-6. Run the readonly `contract-verifier` on the original approved plan and
-   `verify.json`.
-7. For user-visible behavior, run the approved browser evidence. Keep browser,
+Use existing repository commands and hooks. Do not invent a parallel runner or
+evidence file.
+
+1. Run the exact commands named in the plan. Add full `yarn typecheck` only when
+   the conventions packet says public types, selectors, or casts changed.
+2. Confirm Lefthook is installed (`make lefthook-install`) so commit runs
+   `lefthook.yml`. If it is not installed, run the equivalent staged commands
+   from that file.
+3. Run required generators before commit; never hand-edit generated output.
+4. Commit the bounded implementation. Lefthook is the local hard gate.
+5. Compare the approved plan to existing evidence:
+   - `git diff --name-only <base>` versus in-bounds and out-of-bounds;
+   - each acceptance criterion versus the named command output or a `manual`
+     walkthrough;
+   - commit success through Lefthook.
+6. For user-visible behavior, run the approved browser evidence. Keep browser,
    server, recording, and artifact saving in one agent; do not hand off active
    recording state.
 
@@ -91,9 +96,10 @@ Never silently rewrite the original plan.
   explicitly security-sensitive plan.
 - After the selected delivery gate, open a draft PR and use BugBot as the
   default source reviewer.
-- Address BugBot findings and repeat all required gates before another push.
-- BugBot never replaces contract verification, deterministic checks, CI, or
-  human merge judgment.
+- Address BugBot findings and repeat the plan-named commands, Lefthook, and
+  acceptance check before another push.
+- BugBot never replaces the approved plan, Lefthook, CI, or human merge
+  judgment.
 
 ## 4. PR
 
@@ -101,36 +107,39 @@ Never silently rewrite the original plan.
    configuration is an environment failure and blocks the push.
 2. Present an outcome-and-acceptance review:
    - original outcome: met / partially met / not met;
-   - every acceptance criterion: pass / fail with evidence;
+   - every acceptance criterion: pass / fail with the command output or
+     walkthrough that proves it;
    - every non-goal: respected / changed;
+   - `git diff --name-only` versus bounds;
    - implementation deviations and their impact;
    - approved amendments, if any.
-3. Present final verification, contract-verifier result, browser evidence,
-   security disposition, and BugBot plan.
+3. Present command results, Lefthook/commit result, browser evidence, security
+   disposition, and BugBot plan.
 4. Apply the plan's delivery policy:
    - `auto-draft-on-green`: push the feature branch and open a draft PR without
      another prompt only when every acceptance criterion (including manual
-     evidence) passes, every required final check passes, contract verification
-     passes, required security review passes, the commit signature verifies,
-     the tree is clean at the verified SHA, the target is not `main`, and no
-     material outcome/risk amendment is pending.
+     evidence) passes, every plan-named command passes, Lefthook/commit
+     succeeds, required security review passes, the commit signature verifies,
+     the tree is clean, the target is not `main`, and no material outcome/risk
+     amendment is pending.
    - `manual-push-approval`: ask a new, explicit push question. Plan approval,
      Build, implementation requests, control choices, and "finish the task"
      never count as push approval.
    - If any auto-draft condition fails, stop and report the failed gate.
      Subagents and `/babysit` may not infer approval.
 5. After the selected gate, push and open the draft PR with the approved plan,
-   outcome-and-acceptance review, deviation log, verification table, full
-   `verify.json`, and walkthrough evidence.
+   outcome-and-acceptance review, deviation log, command results, and
+   walkthrough evidence.
 6. Run BugBot, then request human review. Use `/subscribe` for CI and
    `/babysit` for later activity; every push repeats the selected delivery gate.
 
-## Deterministic extension points
+## What already enforces the change
 
-- Lefthook pre-commit: formatting, script syntax, and convention-reference
-  integrity.
-- `grafana-verify`: baseline source guard and final committed-SHA evidence.
-- Contract verifier: path bounds and acceptance-to-evidence coverage.
+- Lefthook pre-commit: lint, format, smoke typecheck, Go/CUE formatting, and
+  Cursor convention-reference integrity.
+- Plan-named repository commands: targeted tests and any extra checks the
+  discovery packet required.
+- `git diff --name-only` against the approved plan bounds.
 - Repository CI remains authoritative.
 
 ## Approved context boundary

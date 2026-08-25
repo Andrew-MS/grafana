@@ -47,3 +47,10 @@ Read the approved packet and its named files. Do not rerun Discover unless a
 file is missing, the base SHA changed materially, or runtime evidence
 contradicts the packet. Record the contradiction and reopen Discover instead of
 silently broadening the search.
+
+## Keeping the index accurate
+
+When a routing row or citation changes, run
+`.cursor/skills/grafana-conventions/scripts/check-references.sh`. Lefthook runs
+the same check on staged `.cursor/skills` and `.cursor/agents` files. The hook
+detects moved or deleted paths; it does not detect semantic drift.

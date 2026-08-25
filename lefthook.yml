@@ -26,8 +26,8 @@ pre-commit:
     cursor-workflow:
       glob: '.cursor/{skills,agents}/**/*.{md,sh}'
       run: |
-        bash -n .cursor/skills/grafana-verify/scripts/*.sh &&
-        .cursor/skills/grafana-verify/scripts/check-references.sh
+        bash -n .cursor/skills/grafana-conventions/scripts/*.sh &&
+        .cursor/skills/grafana-conventions/scripts/check-references.sh
 
     typecheck-smoke:
       glob: '{public/app/**/__smoke__/**,public/app/**/*.smoke.ts,scripts/cuj-smoke.ts,tsconfig.smoke.json}'

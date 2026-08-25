@@ -32,9 +32,10 @@ Code changed: yes|no
 ```
 
 The phases are Understand, Discover, Disambiguate, Contract, Implement, Verify,
-Review, and PR. Announce every transition. Never leave the user guessing whether
-the agent is researching, waiting for a decision, editing, testing, recording,
-or asking to push.
+Review, and PR. Verify means the plan's named repository commands plus Lefthook,
+not a separate evidence runner. Announce every transition. Never leave the user
+guessing whether the agent is researching, waiting for a decision, editing,
+testing, recording, or asking to push.
 
 ## Lane 1: contract in Plan Mode
 
@@ -81,8 +82,8 @@ When the user clicks **Build**:
    contract and discovery cache.
 3. Start at its Implement phase. Do not repeat Discover.
 4. `new-contributor` stops directing the run. The universal implementation skill
-   owns test-first work, deterministic verification, review, evidence, and push
-   gates from this point forward.
+   owns test-first work, the plan's named commands, Lefthook, review, evidence,
+   and push gates from this point forward.
 
 The plan's implementation handoff must name `grafana-implementation` plus only
 the stack-specific skills selected during Discover.

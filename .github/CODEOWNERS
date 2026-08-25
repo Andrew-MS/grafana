@@ -845,7 +845,6 @@ playwright.config.ts @grafana/grafana-catalog
 /.cursor/skills/new-contributor/ @grafana/grafana-community-support
 /.cursor/skills/grafana-conventions/ @grafana/grafana-community-support
 /.cursor/skills/grafana-implementation/ @grafana/grafana-community-support
-/.cursor/skills/grafana-verify/ @grafana/grafana-community-support
 /.cursor/agents/ @grafana/grafana-community-support
 playwright.storybook.config.ts @grafana/grafana-frontend-platform
 

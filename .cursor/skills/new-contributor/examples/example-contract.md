@@ -9,7 +9,6 @@ delivery_policy: auto-draft-on-green
 created_at: '2026-08-25T00:00:00Z'
 approved_at:
 approved_by:
-verify_passed: false
 pr_url:
 head_sha:
 in_bounds:
@@ -69,7 +68,7 @@ out_of_bounds:
 
 ### Evidence promise
 
-- **Deterministic:** Named red test, targeted Jest, lint, format, and i18n.
+- **Deterministic:** Named failing test, then the same Jest command green, plus lint, format, and i18n.
 - **Manual:** Save-drawer walkthrough showing clear, restored tree, and focus.
 - **CI authority:** Current frontend, i18n, and owner-gated workflows.
 - **Approval effect:** Build starts test-first implementation. Auto-draft on
@@ -108,10 +107,10 @@ Only the frontmatter paths are approved. Changing keyboard traversal or
 
 ### C. Acceptance criteria
 
-1. [ ] `verify:test` — clearing empties the search value.
-2. [ ] `verify:test` — focus returns to the search input.
-3. [ ] `verify:test` — the clear action appears only for non-empty search.
-4. [ ] `verify:test` — clearing restores the browse-only `Dashboards` root.
+1. [ ] `test` — clearing empties the search value.
+2. [ ] `test` — focus returns to the search input.
+3. [ ] `test` — the clear action appears only for non-empty search.
+4. [ ] `test` — clearing restores the browse-only `Dashboards` root.
 5. [ ] `manual` — the same flow works in the dashboard Save drawer.
 
 ### D. Reproduction and evidence commands
@@ -124,8 +123,8 @@ yarn eslint --no-error-on-unmatched-pattern \
 yarn i18n-extract
 ```
 
-The baseline-red output must name the new test and show that the accessible
-Clear search action is absent.
+The first test run must fail on the new Clear search assertion while the
+source file is still unchanged from the base.
 
 ### E. Risk and rollback
 

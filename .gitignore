@@ -80,7 +80,7 @@ public/css/*.min.css
 .claude/*
 
 # Cursor agent contribution workflow. Re-include only versioned skills and agents;
-# contracts, verification evidence, and other local Cursor state stay ignored.
+# local Cursor state stays ignored.
 !.cursor/
 .cursor/*
 !.cursor/skills/

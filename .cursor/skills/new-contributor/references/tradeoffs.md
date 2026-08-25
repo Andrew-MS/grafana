@@ -108,13 +108,13 @@ Prefer evidence that proves behavior rather than restating the implementation.
 
 State which gates rely on instructions and which are enforced by tools:
 
-| Gate                    | Instruction-only risk                     | Preferred mechanism                                                                                             |
-| ----------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| No code before contract | Agent may interpret urgency as permission | Built-in Plan Mode                                                                                              |
-| Red before production   | Agent may add test and source together    | `grafana-verify` refuses changed source                                                                         |
-| Scope bounds            | Agent may widen the diff while debugging  | Contract verifier over changed paths                                                                            |
-| Delivery / push         | Agent or subagent may infer old approval  | Plan-selected `auto-draft-on-green` or `manual-push-approval`; Lefthook and `verify.json` remain the hard gates |
-| CI success              | Agent may summarize local checks as CI    | Repository CI remains authoritative                                                                             |
+| Gate                    | Instruction-only risk                     | Preferred mechanism                                                                                    |
+| ----------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| No code before contract | Agent may interpret urgency as permission | Built-in Plan Mode                                                                                     |
+| Red before production   | Agent may add test and source together    | Skill rule: test-only edit, `git diff --quiet` on source, then the plan-named test. Not a custom hook. |
+| Scope bounds            | Agent may widen the diff while debugging  | Compare `git diff --name-only` to the approved plan bounds                                             |
+| Delivery / push         | Agent or subagent may infer old approval  | Plan-selected `auto-draft-on-green` or `manual-push-approval`; Lefthook and CI are the hard gates      |
+| CI success              | Agent may summarize local checks as CI    | Repository CI remains authoritative                                                                    |
 
 When adherence has already failed in dogfood, do not describe another prompt as
 enforcement. Prefer a deterministic check, a product mode, a hook, or a human
