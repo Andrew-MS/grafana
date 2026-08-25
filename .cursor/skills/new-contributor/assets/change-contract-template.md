@@ -8,9 +8,6 @@ requested_by: pm
 created_at: 'YYYY-MM-DDTHH:MM:SSZ'
 approved_at:
 approved_by:
-plan_uri:
-plan_sha256:
-plan_revision: 1
 verify_passed: false
 pr_url:
 head_sha:
@@ -76,17 +73,10 @@ Clicking **Build** approves this complete contract and starts test-first
 implementation through `grafana-implementation`. It does not approve commit
 push, PR readiness, or merge.
 
-### Plan provenance
-
-- **Approved plan URI:** `<saved Cursor plan path or URI>`
-- **Approved plan SHA-256:** `<computed after approval, before implementation>`
-- **Revision:** `1`
-- **Amendments:** none
-
-The original approved plan is immutable as the baseline. Tactical implementation
+The approved Cursor plan is the review baseline. Tactical implementation
 deviations are allowed when documented below and the outcome, acceptance
 criteria, and non-goals remain intact. Changes to those or to material
-rollout/security risk require a human-approved amendment and new revision/hash.
+rollout/security risk require a human-approved amendment.
 
 ---
 

@@ -36,12 +36,6 @@ Baseline mode also enforces ordering: it refuses to run when the named source
 file already differs from the base, or when the test file has no new change.
 Do not stash an implementation to create retroactive red evidence.
 
-Both modes require the machine contract to reference the original approved plan
-with `plan_uri`, `plan_sha256`, and `plan_revision`. Verification recomputes the
-plan hash and refuses mismatches. The hash anchors provenance; it does not
-forbid documented tactical deviations that preserve the original outcome and
-acceptance criteria.
-
 ## Scope
 
 - Default base: `origin/main`; override with `--base`.
@@ -61,9 +55,10 @@ acceptance criteria.
 required final checks. Paste the final verification table and full JSON into the
 PR body so ignored scratch files are not the only record.
 
-Before PR, the contract verifier compares the original plan, the machine
-projection, and `verify.json`, then emits an outcome-and-acceptance review plus
-the deviation log.
+Before PR, the contract verifier compares the original approved plan directly
+with `verify.json`, then emits an outcome-and-acceptance review plus the
+deviation log. The plan is included in PR evidence; no duplicate plan hash or
+contract projection is required.
 
 Run `scripts/check-references.sh` during contract creation and before the
 artifact PR. It detects deleted or moved citations, not semantic drift or CI

@@ -8,9 +8,6 @@ requested_by: support
 created_at: '2026-08-25T00:00:00Z'
 approved_at:
 approved_by:
-plan_uri:
-plan_sha256:
-plan_revision: 1
 verify_passed: false
 pr_url:
 head_sha:
@@ -75,13 +72,9 @@ out_of_bounds:
 - **CI authority:** Current frontend, i18n, and owner-gated workflows.
 - **Approval effect:** Build starts test-first implementation; push still requires separate approval.
 
-### Plan provenance
-
-This illustrative draft has no approval hash. A real run records the saved
-Cursor plan URI and SHA-256 immediately after Build, before any implementation.
-Tactical implementation deviations are logged against this baseline. Only an
-outcome, acceptance, non-goal, or material-risk change requires an approved new
-revision and hash.
+The approved Cursor plan remains the review baseline. Tactical implementation
+deviations are logged against it. Only an outcome, acceptance, non-goal, or
+material-risk change requires a human-approved amendment.
 
 ---
 

@@ -39,28 +39,16 @@ interview, or resolve only the missing field with `grafana-conventions`. Do not
 interpret urgency or a generic "complete the request" instruction as approval
 to invent scope.
 
-Materialize `.cursor/contracts/<slug>.md` automatically when machine-readable
-verification needs it. The file is a projection of the approved plan, not a
-second approval surface, and the user never edits it.
-
-Before materializing it:
-
-1. record the saved plan URI;
-2. compute SHA-256 over the approved plan;
-3. copy outcome, decisions, scope, criteria, and evidence without reinterpretation;
-4. record `plan_uri`, `plan_sha256`, and `plan_revision: 1`.
-
-The original approved plan is immutable as a provenance artifact, but the
-implementation may deviate from its tactics. Record each deviation as planned
-versus actual, reason, and impact on outcome, acceptance evidence, risk, and
-non-goals.
+Keep the original approved plan attached as the review baseline; do not create a
+second plan or ask the user to edit a machine projection. Implementation may
+deviate from its tactics. Record each deviation as planned versus actual,
+reason, and impact on outcome, acceptance evidence, risk, and non-goals.
 
 Changing implementation files, helpers, commands, or internal approach does not
 need renewed approval when the original outcome and acceptance criteria remain
 intact. Changing the intended outcome, an acceptance criterion, an explicit
 non-goal, or material rollout/security risk requires a human-approved amendment.
-Increment the revision, preserve the prior hash, and compute the new approved
-hash. Never silently rewrite the original plan.
+Never silently rewrite the original plan.
 
 ## 1. Implement
 
@@ -84,8 +72,8 @@ hash. Never silently rewrite the original plan.
 2. Commit the bounded implementation.
 3. Run `grafana-verify --mode final` against clean `HEAD`.
 4. The verified `head_sha` must be the commit offered for push.
-5. Run the readonly `contract-verifier` on the machine contract and
-   `verify.json`, with the original approved plan as the third input.
+5. Run the readonly `contract-verifier` on the original approved plan and
+   `verify.json`.
 6. For user-visible behavior, run the approved browser evidence. Keep browser,
    server, recording, and artifact saving in one agent; do not hand off active
    recording state.
@@ -106,22 +94,21 @@ hash. Never silently rewrite the original plan.
 
 1. Verify the committed SHA with `git verify-commit HEAD`. Missing SSH signer
    configuration is an environment failure and blocks the push.
-2. Recompute the approved plan hash and confirm it matches `plan_sha256`.
-3. Present an outcome-and-acceptance review:
+2. Present an outcome-and-acceptance review:
    - original outcome: met / partially met / not met;
    - every acceptance criterion: pass / fail with evidence;
    - every non-goal: respected / changed;
    - implementation deviations and their impact;
    - approved amendments, if any.
-4. Present final verification, contract-verifier result, browser evidence,
+3. Present final verification, contract-verifier result, browser evidence,
    security disposition, and BugBot plan.
-5. Ask a new, explicit push question. Plan approval, Build, implementation
+4. Ask a new, explicit push question. Plan approval, Build, implementation
    requests, control choices, and "finish the task" never count as push
    approval. Subagents and `/babysit` may not infer it.
-6. After approval, push and open the draft PR with the approved plan provenance,
-   contract projection, outcome-and-acceptance review, deviation log,
-   verification table, full `verify.json`, and walkthrough evidence.
-7. Run BugBot, then request human review. Use `/subscribe` for CI and
+5. After approval, push and open the draft PR with the approved plan,
+   outcome-and-acceptance review, deviation log, verification table, full
+   `verify.json`, and walkthrough evidence.
+6. Run BugBot, then request human review. Use `/subscribe` for CI and
    `/babysit` for later activity; every push repeats this gate.
 
 ## Deterministic extension points

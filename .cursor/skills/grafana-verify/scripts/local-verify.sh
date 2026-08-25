@@ -65,60 +65,6 @@ BASE_SHA="$(git merge-base HEAD "$BASE_REF")"
 HEAD_SHA="$(git rev-parse HEAD)"
 SLUG="$(basename "$CONTRACT")"
 SLUG="${SLUG%.md}"
-if [[ -f "$CONTRACT" ]]; then
-  CONTRACT_PATH="$CONTRACT"
-else
-  CONTRACT_PATH=".cursor/contracts/${SLUG}.md"
-fi
-
-if [[ ! -f "$CONTRACT_PATH" ]]; then
-  echo "Contract projection does not exist: $CONTRACT_PATH" >&2
-  exit 2
-fi
-
-PLAN_METADATA="$(python3 - "$CONTRACT_PATH" <<'PY'
-import pathlib
-import re
-import sys
-
-text = pathlib.Path(sys.argv[1]).read_text(errors="replace")
-
-def field(name: str) -> str:
-    match = re.search(rf"^{re.escape(name)}:\s*(.*?)\s*$", text, re.MULTILINE)
-    if not match:
-        return ""
-    return match.group(1).strip().strip("'\"")
-
-print("\t".join((field("plan_uri"), field("plan_sha256"), field("plan_revision"))))
-PY
-)"
-IFS=$'\t' read -r PLAN_URI PLAN_SHA256 PLAN_REVISION <<<"$PLAN_METADATA"
-
-if [[ -z "$PLAN_URI" || -z "$PLAN_SHA256" || -z "$PLAN_REVISION" ]]; then
-  echo "Contract projection is missing plan_uri, plan_sha256, or plan_revision." >&2
-  exit 2
-fi
-
-PLAN_PATH="${PLAN_URI#file://}"
-if [[ ! -f "$PLAN_PATH" ]]; then
-  echo "Approved plan is not readable: $PLAN_URI" >&2
-  exit 2
-fi
-
-ACTUAL_PLAN_SHA256="$(python3 - "$PLAN_PATH" <<'PY'
-import hashlib
-import pathlib
-import sys
-
-print(hashlib.sha256(pathlib.Path(sys.argv[1]).read_bytes()).hexdigest())
-PY
-)"
-
-if [[ "$ACTUAL_PLAN_SHA256" != "$PLAN_SHA256" ]]; then
-  echo "Approved plan hash mismatch: expected $PLAN_SHA256, got $ACTUAL_PLAN_SHA256" >&2
-  exit 2
-fi
-
 OUT="${OUT:-.cursor/verify/${SLUG}.json}"
 mkdir -p "$(dirname "$OUT")"
 
@@ -202,8 +148,7 @@ skip_check() {
 write_baseline_json() {
   local observed="$1" exit_code="$2" test_name="$3" excerpt="$4" log_path="$5" test_cmd="$6"
   python3 - "$OUT" "$SLUG" "$STACK" "$BASE_REF" "$BASE_SHA" "$observed" "$exit_code" \
-    "$test_name" "$excerpt" "$log_path" "$test_cmd" "$CHANGED_LIST" \
-    "$PLAN_URI" "$PLAN_SHA256" "$PLAN_REVISION" <<'PY'
+    "$test_name" "$excerpt" "$log_path" "$test_cmd" "$CHANGED_LIST" <<'PY'
 import datetime
 import json
 import pathlib
@@ -211,15 +156,11 @@ import subprocess
 import sys
 
 (out, slug, stack, base_ref, base_sha, observed, exit_code,
- test_name, excerpt, log_path, test_cmd, changed_path,
- plan_uri, plan_sha256, plan_revision) = sys.argv[1:]
+ test_name, excerpt, log_path, test_cmd, changed_path) = sys.argv[1:]
 changed = pathlib.Path(changed_path).read_text().splitlines()
 payload = {
-    "schema_version": 3,
+    "schema_version": 2,
     "contract": slug,
-    "plan_uri": plan_uri,
-    "plan_sha256": plan_sha256,
-    "plan_revision": int(plan_revision),
     "mode": "baseline",
     "stack": stack,
     "split_recommended": stack == "both",
@@ -399,14 +340,13 @@ if [[ -n "$E2E_SPEC" ]]; then
 fi
 
 python3 - "$OUT" "$SLUG" "$STACK" "$BASE_REF" "$BASE_SHA" "$HEAD_SHA" \
-  "$CHANGED_LIST" "$RECORDS" "$PLAN_URI" "$PLAN_SHA256" "$PLAN_REVISION" <<'PY'
+  "$CHANGED_LIST" "$RECORDS" <<'PY'
 import datetime
 import json
 import pathlib
 import sys
 
-(out, slug, stack, base_ref, base_sha, head_sha, changed_path, records_path,
- plan_uri, plan_sha256, plan_revision) = sys.argv[1:]
+out, slug, stack, base_ref, base_sha, head_sha, changed_path, records_path = sys.argv[1:]
 out_path = pathlib.Path(out)
 baseline = None
 if out_path.exists():
@@ -437,11 +377,8 @@ all_passed = all(
     for check in checks
 )
 payload = {
-    "schema_version": 3,
+    "schema_version": 2,
     "contract": slug,
-    "plan_uri": plan_uri,
-    "plan_sha256": plan_sha256,
-    "plan_revision": int(plan_revision),
     "mode": "final",
     "stack": stack,
     "split_recommended": stack == "both",

@@ -91,25 +91,22 @@ Plan Mode prevents production edits in this lane.
 
 1. Click **Build**, which moves the approved plan into Agent Mode.
 2. Load `/grafana-implementation`. The approved plan is the deliberate handoff.
-3. Contributor creates any machine-readable contract projection automatically;
-   the user never edits YAML.
-4. Read the discovery packet and its named files. Do not repeat repository-wide
+3. Read the discovery packet and its named files. Do not repeat repository-wide
    discovery unless an explicit unresolved field remains.
-5. Edit tests only, then observe the named expected failure. Baseline
+4. Edit tests only, then observe the named expected failure. Baseline
    verification refuses production changes that already differ from the base.
-6. Implement only within approved paths.
-7. Generate required output, commit, and run final verification against clean
+5. Implement only within approved paths or document tactical deviations.
+6. Generate required output, commit, and run final verification against clean
    `HEAD`.
-8. Run the contract verifier and the approved browser evidence.
-9. Record the walkthrough in the same agent that owns the browser and recording.
-10. Check the commit signature and ask a new, explicit push question. Build,
-    implementation, and earlier approvals never count.
-    approvals never count.
-11. Push only after that answer, open a draft PR, and run BugBot before
+7. Run the contract verifier and the approved browser evidence.
+8. Record the walkthrough in the same agent that owns the browser and recording.
+9. Check the commit signature and ask a new, explicit push question. Build,
+   implementation, and earlier approvals never count.
+10. Push only after that answer, open a draft PR, and run BugBot before
     requesting human review. Use `/review` only as the documented fallback.
-12. Put the contract, verification table, full `verify.json`, and recording in
-    the PR body.
-13. Subscribe to CI; do not replace it with agent judgment.
+11. Put the approved plan, outcome-and-acceptance review, deviation log,
+    verification table, full `verify.json`, and recording in the PR body.
+12. Subscribe to CI; do not replace it with agent judgment.
 
 ## One contract, four audiences
 
@@ -120,17 +117,16 @@ Plan Mode prevents production edits in this lane.
 | QA                | Acceptance criteria, reproduction commands, deterministic results, and walkthrough                 |
 | DevOps / Platform | Ownership, likely checks confirmed from current workflows, signing, rollback, and context boundary |
 
-Working contract and verification files are ignored local scratch. The PR body
-is their durable, shared destination. It includes the original approved plan
-URI/hash/revision, an outcome-and-acceptance matrix, documented tactical
-deviations, the machine projection, and final evidence.
+Verification files are ignored local scratch. The PR body is the durable shared
+destination for the approved plan, outcome-and-acceptance matrix, documented
+tactical deviations, and final evidence.
 
 The original plan is a baseline, not an implementation prison. Files, helpers,
 commands, and internal approach may change when runtime evidence warrants it.
 Before PR, the verifier confirms that the original outcome and every acceptance
 criterion are met, non-goals remain respected, and each deviation is explained.
-Outcome, acceptance, non-goal, or material-risk changes require a new
-human-approved plan revision.
+Outcome, acceptance, non-goal, or material-risk changes require a human-approved
+plan amendment.
 
 ## Maintaining the workflow
 
@@ -147,6 +143,11 @@ When a convention changes:
    .cursor/skills/grafana-verify/scripts/check-references.sh
    bash -n .cursor/skills/grafana-verify/scripts/*.sh
    ```
+
+The existing opt-in Lefthook pre-commit configuration runs those two checks
+automatically when staged Cursor skills, agents, or scripts change. Install it
+with `make lefthook-install`. This hook protects hard repository facts only; it
+does not attempt to interpret product outcomes or acceptance criteria.
 
 The map's likely-checks column is a hint. Confirm actual triggers from current
 workflow files during each contract; CI remains authoritative.
