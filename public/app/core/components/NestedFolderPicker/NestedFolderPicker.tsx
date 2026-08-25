@@ -7,7 +7,7 @@ import * as React from 'react';
 import { type GrafanaTheme2 } from '@grafana/data';
 import { selectors } from '@grafana/e2e-selectors';
 import { t } from '@grafana/i18n';
-import { Alert, floatingUtils, Icon, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
+import { Alert, floatingUtils, Icon, IconButton, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
 import { useGetFolderQueryFacade } from 'app/api/clients/folder/v1beta1/hooks';
 import { getMessageFromError, getStatusFromError } from 'app/core/utils/errors';
 import { type DashboardViewItemWithUIItems, type DashboardsTreeItem } from 'app/features/browse-dashboards/types';
@@ -115,6 +115,8 @@ export function NestedFolderPicker({
   const overlayId = useId();
 
   const lastSearchTimestamp = useRef<number>(0);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const clearSearchButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const {
     teamFolderTreeItems,
@@ -142,6 +144,8 @@ export function NestedFolderPicker({
   useEffect(() => {
     if (!search) {
       setSearchResults(null);
+      // Invalidate in-flight debounced searches so a late response cannot restore results.
+      lastSearchTimestamp.current = Date.now();
       return;
     }
 
@@ -187,7 +191,14 @@ export function NestedFolderPicker({
   });
 
   const click = useClick(context);
-  const dismiss = useDismiss(context);
+  const dismiss = useDismiss(context, {
+    // Suffix lives outside the <input> reference; capture-phase outsidePress
+    // would otherwise close the overlay before stopPropagation can run.
+    outsidePress: (event) => {
+      const target = event.target;
+      return !(target instanceof Node && clearSearchButtonRef.current?.contains(target));
+    },
+  });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, click]);
 
@@ -216,6 +227,23 @@ export function NestedFolderPicker({
     },
     [onChange]
   );
+
+  const handleClearSearchPointerDown = useCallback(
+    (event: React.PointerEvent<HTMLButtonElement> | React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    []
+  );
+
+  const handleClearSearch = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    lastSearchTimestamp.current = Date.now();
+    setSearch('');
+    setSearchResults(null);
+    inputRef.current?.focus();
+  }, []);
 
   const handleClearSelection = useCallback(
     (event: React.MouseEvent<SVGElement> | React.KeyboardEvent<SVGElement>) => {
@@ -342,7 +370,10 @@ export function NestedFolderPicker({
   return (
     <>
       <Input
-        ref={refs.setReference}
+        ref={(node) => {
+          refs.setReference(node);
+          inputRef.current = node;
+        }}
         autoFocus
         data-testid={selectors.components.FolderPicker.input}
         prefix={label ? <Icon name="folder" /> : <Icon name="search" />}
@@ -351,6 +382,19 @@ export function NestedFolderPicker({
         invalid={invalid}
         className={styles.search}
         onChange={(e) => setSearch(e.currentTarget.value)}
+        suffix={
+          search !== '' ? (
+            <IconButton
+              ref={clearSearchButtonRef}
+              name="times"
+              size="sm"
+              aria-label={t('browse-dashboards.folder-picker.clear-search', 'Clear search')}
+              onPointerDown={handleClearSearchPointerDown}
+              onMouseDown={handleClearSearchPointerDown}
+              onClick={handleClearSearch}
+            />
+          ) : undefined
+        }
         aria-autocomplete="list"
         aria-expanded
         aria-haspopup
