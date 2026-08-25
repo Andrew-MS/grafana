@@ -112,6 +112,70 @@ describe('NestedFolderPicker', () => {
     expect(screen.getByLabelText(folderC.item.title)).toBeInTheDocument();
   });
 
+  it('does not show a Clear search button when the search query is empty', async () => {
+    const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+    await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+    await screen.findByLabelText(folderA.item.title);
+
+    expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+  });
+
+  it('clears the search query, restores the browse tree, and keeps focus in the search box', async () => {
+    const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+    await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+    await screen.findByLabelText('Team folders');
+    await screen.findByLabelText('Dashboards');
+
+    // skipClick: the combobox is the floating-ui reference; a click toggles the overlay closed.
+    await user.type(screen.getByRole('combobox'), 'folder', { skipClick: true });
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Team folders')).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Dashboards')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+    expect(screen.getByRole('combobox')).toHaveValue('');
+    expect(screen.getByRole('combobox')).toHaveFocus();
+    expect(screen.queryByRole('button', { name: 'Select folder' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+
+    expect(await screen.findByLabelText('Team folders')).toBeInTheDocument();
+    expect(screen.getByLabelText('Dashboards')).toBeInTheDocument();
+  });
+
+  it('does not restore a late search result after the query is cleared', async () => {
+    const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+    await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+    await screen.findByLabelText('Team folders');
+
+    await user.type(screen.getByRole('combobox'), 'folder', { skipClick: true });
+    await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+    expect(screen.getByRole('combobox')).toHaveValue('');
+    expect(await screen.findByLabelText('Team folders')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Team folders')).toBeInTheDocument();
+      expect(screen.getByLabelText('Dashboards')).toBeInTheDocument();
+    });
+    expect(screen.getByRole('combobox')).toHaveValue('');
+  });
+
+  it('closes the overlay on Escape while the search query is non-empty', async () => {
+    const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+    await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+    await screen.findByLabelText(folderA.item.title);
+
+    await user.type(screen.getByRole('combobox'), 'folder', { skipClick: true });
+    await user.keyboard('{Escape}');
+
+    expect(await screen.findByRole('button', { name: 'Select folder' })).toBeInTheDocument();
+    expect(screen.queryByPlaceholderText('Search folders')).not.toBeInTheDocument();
+  });
+
   it('can select a folder from the picker', async () => {
     const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
 
