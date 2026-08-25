@@ -65,7 +65,11 @@ if (range.length === 0) {
 }
 
 const oldest = range.at(-1);
-const changes = git(['diff', '--name-status', `${oldest}~1`, 'HEAD'])
+// A root commit has no `~1`, and a long --since window or a shallow clone can
+// reach one. Diff against git's empty tree rather than aborting the report.
+const EMPTY_TREE = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+const base = git(['log', '-1', '--format=%P', oldest]) ? `${oldest}~1` : EMPTY_TREE;
+const changes = git(['diff', '--name-status', base, 'HEAD'])
   .split('\n')
   .filter(Boolean)
   .map((line) => {

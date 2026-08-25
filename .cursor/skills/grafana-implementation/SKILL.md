@@ -18,10 +18,15 @@ Start each user-facing update with:
 Implementation: <phase-number>/4 — Implement | Verify | Review | PR
 Completed:
 Current:
+Outstanding evidence: none | <criterion and the artifact it still needs>
 Need from you:
 Next:
 Code changed: yes|no
 ```
+
+Phases run in order. Never report a later phase as complete while an earlier one
+is open — an opened pull request under `2/4 — Verify` is a contradiction, not
+progress.
 
 ## Preconditions
 
@@ -29,7 +34,7 @@ Require an approved Cursor plan or equivalent implementation brief containing:
 
 - outcome and resolved human decisions;
 - discovery packet or exact source/test/instruction paths;
-- in-bounds and out-of-bounds paths;
+- non-goals;
 - change type;
 - acceptance criteria;
 - evidence tier and targeted commands;
@@ -79,14 +84,20 @@ evidence file.
    from that file.
 3. Run required generators before commit; never hand-edit generated output.
 4. Commit the bounded implementation. Lefthook is the local hard gate.
-5. Compare the approved plan to existing evidence:
-   - `git diff --name-only <base>` versus in-bounds and out-of-bounds;
-   - each acceptance criterion versus the named command output or a `manual`
-     walkthrough;
+5. For user-visible behavior, run the approved browser evidence and save the
+   artifacts before comparing anything. Keep browser, server, recording, and
+   artifact saving in one agent; do not hand off active recording state.
+6. Compare the approved plan to existing evidence:
+   - `git diff --name-only <base>` versus the packet's source and test paths,
+     and versus the non-goals;
+   - each acceptance criterion versus the named command output or the saved
+     walkthrough artifact;
    - commit success through Lefthook.
-6. For user-visible behavior, run the approved browser evidence. Keep browser,
-   server, recording, and artifact saving in one agent; do not hand off active
-   recording state.
+
+   A criterion with no artifact is not met. A passing test suite never stands in
+   for a walkthrough the plan named, and neither does an opened pull request.
+   Verify is incomplete while any criterion is unproven, and an incomplete
+   Verify cannot enter Review or PR.
 
 ## 3. Review
 
@@ -104,8 +115,8 @@ more quality" — each one catches a class the others structurally cannot.
 - Run `/review-security` for authentication/authorization, secrets, sensitive
   data, unsafe HTML, external command/query construction, dependencies, or an
   explicitly security-sensitive plan.
-- BugBot is the default source reviewer and runs on the draft PR, before human
-  exposure.
+- BugBot is the default source reviewer. It runs itself once the draft PR
+  exists, so it cannot gate the push — that is why `/review` runs first.
 - Address BugBot findings and repeat the plan-named commands, Lefthook, and
   acceptance check before another push. Branch protection dismisses stale
   approvals automatically; do not treat a pre-fix approval as current.
@@ -128,11 +139,11 @@ it, because it was never a stated criterion.
    - every acceptance criterion: pass / fail with the command output or
      walkthrough that proves it;
    - every non-goal: respected / changed;
-   - `git diff --name-only` versus bounds;
+   - `git diff --name-only <base>` versus the packet's source and test paths;
    - implementation deviations and their impact;
    - approved amendments, if any.
-3. Present command results, Lefthook/commit result, browser evidence, security
-   disposition, and BugBot plan.
+3. Present command results, Lefthook/commit result, browser evidence, and
+   security disposition.
 4. Declare the bounds. Put a `Change-Bounds:` trailer on the tip commit naming
    the paths this branch touched:
 
@@ -188,9 +199,11 @@ it, because it was never a stated criterion.
    outcome-and-acceptance review, deviation log, command results, and
    walkthrough evidence. Include a short section per audience — PM, engineer,
    QA, DevOps — so the one artifact everyone opens answers each of them.
-7. Run BugBot, then request human review. Use `/subscribe` for CI and
-   `/babysit` for later activity; every push repeats the selected delivery gate
-   and dismisses any prior approval.
+7. Subscribe to the PR and wait for comments. BugBot runs itself once the draft
+   PR opens — never report it as a step you performed, and never claim its
+   verdict before it posts. Use `/subscribe` for CI and `/babysit` for later
+   activity, then address BugBot and human comments as they arrive. Every push
+   repeats the selected delivery gate and dismisses any prior approval.
 
 ## What already enforces the change
 

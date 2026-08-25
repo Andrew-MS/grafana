@@ -37,14 +37,15 @@ export function globToRegExp(glob) {
 
 // Column 1 of the routing table holds one or more backticked globs. Rows only:
 // the map also has backticked paths in its prose, and reading those as routing
-// globs would quietly widen apparent coverage.
+// globs would quietly widen apparent coverage. An `except` clause names a nested
+// override that has its own earlier row, so only the text before it is routing.
 export function mapGlobs(mapText) {
   const globs = [];
   for (const line of mapText.split('\n')) {
     if (!line.startsWith('| `')) {
       continue;
     }
-    const firstColumn = line.split('|')[1];
+    const firstColumn = line.split('|')[1].split(' except ')[0];
     for (const match of firstColumn.matchAll(/`([^`]+)`/g)) {
       globs.push(match[1]);
     }
@@ -75,16 +76,18 @@ export function selfTestGlobs() {
   expect('yes', 'packages/**', 'packages/grafana-ui/src/index.ts');
 
   // The prose line matters: the map has backticked paths in its Known limits and
-  // Maintenance protocol sections.
+  // Maintenance protocol sections. The `except` cell matters too: its exclusion
+  // is documentation, and reading it as a glob invents a row that owns nothing.
   const globs = mapGlobs(
     [
       '| `a/**` | x |',
       '| `b/*`, `c.ini` | y |',
+      '| `d/**` except `d/e/` | z |',
       '| not a row |',
       '- `.cursor/skills/x/scripts/y.mjs` catches moved paths',
     ].join('\n')
   );
-  if (globs.join(',') !== 'a/**,b/*,c.ini') {
+  if (globs.join(',') !== 'a/**,b/*,c.ini,d/**') {
     console.error(`  map glob extraction returned: ${globs.join(',')}`);
     failed = true;
   }

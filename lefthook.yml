@@ -24,7 +24,11 @@ pre-commit:
       stage_fixed: true
 
     cursor-workflow:
-      glob: '.cursor/**/*.{md,mjs}'
+      # `.cursor/**/*.{md,mjs}` needs at least one directory between .cursor/ and
+      # the filename, so it misses top-level files like README.md; `**` alone
+      # matches those too. The run block is fixed, not {staged_files}, so a
+      # wider glob only means the guard runs slightly more often.
+      glob: '.cursor/**'
       run: |
         node --check .cursor/skills/grafana-conventions/scripts/check-references.mjs &&
         node --check .cursor/skills/grafana-implementation/scripts/check-bounds.mjs &&
