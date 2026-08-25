@@ -27,28 +27,29 @@ standard without the owning teams.
 
 ## Cursor primitives
 
-| Primitive                                          | Responsibility                                                    |
-| -------------------------------------------------- | ----------------------------------------------------------------- |
-| Built-in Plan Mode                                 | Tool-level boundary for discovery, design, and contract creation  |
-| `contributor` skill attached in Plan Mode          | Repository-specific questions, routing, and contract structure    |
-| `contributor` skill activated with **Use as Mode** | Persistent implementation workflow after approval                 |
-| `grafana-conventions` skill                        | Path-to-authority resolver and stack-specific context index       |
-| `convention-resolver` readonly subagent            | One search-budgeted discovery packet, isolated from the main chat |
-| `grafana-verify` skill                             | Targeted commands and machine-readable evidence                   |
-| `contract-verifier` readonly subagent              | Acceptance, scope, and evidence completeness only                 |
-| BugBot                                             | Default draft-PR review for bugs, anti-patterns, and weak tests   |
-| `/review`                                          | Fallback when BugBot is unavailable or local review is requested  |
-| `/walkthrough-artifacts`                           | User-visible browser evidence before push                         |
-| `/subscribe`                                       | Observe real CI without polling                                   |
+| Primitive                               | Responsibility                                                    |
+| --------------------------------------- | ----------------------------------------------------------------- |
+| Built-in Plan Mode                      | Tool-level boundary for discovery, design, and contract creation  |
+| `new-contributor` skill in Plan Mode    | Guided product interview, decisions, and contract structure       |
+| `new-contributor` skill after **Build** | Test-first implementation from the approved discovery packet      |
+| `grafana-conventions` skill             | Path-to-authority resolver and stack-specific context index       |
+| `convention-resolver` readonly subagent | One search-budgeted discovery packet, isolated from the main chat |
+| `grafana-verify` skill                  | Targeted commands and machine-readable evidence                   |
+| `contract-verifier` readonly subagent   | Acceptance, scope, and evidence completeness only                 |
+| BugBot                                  | Default draft-PR review for bugs, anti-patterns, and weak tests   |
+| `/review`                               | Fallback when BugBot is unavailable or local review is requested  |
+| `/walkthrough-artifacts`                | User-visible browser evidence before push                         |
+| `/subscribe`                            | Observe real CI without polling                                   |
 
-No project `modes.json` is required or documented. A discovered skill can back
-a Custom Mode while selected.
+No project `modes.json` is required or documented. Custom Mode remains an
+optional persistence choice for unusually long implementations; the first-time
+path uses built-in Plan → Build → Agent.
 
 Official Cursor documentation:
 
-- [Custom Modes](https://cursor.com/docs/agent/prompting.md#custom-modes)
-- [Using a skill as a Custom Mode](https://cursor.com/docs/skills.md#using-a-skill-as-a-custom-mode)
 - [Plan Mode](https://cursor.com/docs/agent/plan-mode.md)
+- [Skills](https://cursor.com/docs/skills.md)
+- [Custom Modes](https://cursor.com/docs/agent/prompting.md#custom-modes)
 
 ## Two-lane workflow
 
@@ -60,25 +61,26 @@ contributors can ask for concise updates.
 ### Lane 1: contract
 
 1. Select built-in **Plan Mode**.
-2. Invoke `/contributor` with ordinary Enter so it attaches to the message
+2. Invoke `/new-contributor` with ordinary Enter so it attaches to the message
    without replacing Plan Mode.
 3. Provide the product outcome without file paths or implementation hints.
 4. Let the agent run Understand, one convention-resolver pass, and
    Disambiguate. It should show the current phase, completed work, decisions
    needed from you, and what happens next.
-5. Answer every decision-bearing question. CreatePlan is not a fallback for
-   asking questions.
-6. The final saved Cursor plan is the authoritative contract. Do not create or
-   manually edit `.cursor/contracts/` in Plan Mode.
-7. Review and approve the complete plan for implementation.
+5. Answer every decision-bearing question in interview form. CreatePlan is not
+   a fallback for asking questions.
+6. Review the human-facing outcome, decisions, scope, and evidence summary at
+   the top of the plan; the discovery packet remains in the appendix.
+7. The final saved Cursor plan is the authoritative contract. Click **Build** to
+   approve implementation. Do not create or manually edit `.cursor/contracts/`
+   in Plan Mode.
 
 Plan Mode prevents production edits in this lane.
 
 ### Lane 2: implementation
 
-1. Select `/contributor` and choose **Use as Mode**.
-2. Attach the approved Cursor plan. The mode contexts are separate; the file is
-   the deliberate handoff.
+1. Click **Build**, which moves the approved plan into Agent Mode.
+2. Load `/new-contributor` again. The approved plan is the deliberate handoff.
 3. Contributor creates any machine-readable contract projection automatically;
    the user never edits YAML.
 4. Read the discovery packet and its named files. Do not repeat repository-wide
@@ -90,7 +92,8 @@ Plan Mode prevents production edits in this lane.
    `HEAD`.
 8. Run the contract verifier and the approved browser evidence.
 9. Record the walkthrough in the same agent that owns the browser and recording.
-10. Check the commit signature and ask a new, explicit push question. Earlier
+10. Check the commit signature and ask a new, explicit push question. Build,
+    implementation, and earlier approvals never count.
     approvals never count.
 11. Push only after that answer, open a draft PR, and run BugBot before
     requesting human review. Use `/review` only as the documented fallback.
@@ -202,7 +205,7 @@ an enabled group has no dashboards.
 Use a fresh Cloud Agent created from the prebuilt environment. Before the
 interview:
 
-- confirm `/contributor` appears and works in both lanes;
+- confirm `/new-contributor` appears in Plan and Agent modes;
 - confirm `grafana-conventions` and `convention-resolver` are discoverable;
 - confirm the draft-contract precondition refuses implementation;
 - confirm pinned Node, `node_modules`, and Playwright Chromium are available;

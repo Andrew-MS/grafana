@@ -19,17 +19,45 @@ out_of_bounds:
 
 # Change contract: change-slug
 
-## 1. Outcome
+## What you are approving
 
-**User and problem:**
+### Outcome
 
-**User-visible outcome:**
+- **Who is affected:**
+- **Problem:**
+- **User-visible outcome:**
+- **Success signal:**
 
-**Success signal:**
+### Decisions
 
-**Non-goals:**
+Every row must be resolved before CreatePlan.
 
-## 2. Discovery evidence
+| Decision | Options considered | Recommendation | Your choice | Why |
+| -------- | ------------------ | -------------- | ----------- | --- |
+|          |                    |                |             |     |
+
+### Scope and non-goals
+
+- **In scope:**
+- **Not in scope:**
+
+### Evidence promise
+
+- **Deterministic evidence:**
+- **Browser/manual evidence:**
+- **CI authority:**
+- **Rollout choice:**
+
+### Approval effect
+
+Clicking **Build** approves this complete contract and starts test-first
+implementation. It does not approve commit push, PR readiness, or merge.
+
+---
+
+## Engineering appendix
+
+### A. Discovery packet
 
 This packet is the cache consumed by implementation. Leave no unresolved field
 unless it is explicitly named and approved.
@@ -51,24 +79,9 @@ unless it is explicitly named and approved.
 | Verified at               |         | `<base SHA>`                  |
 | Unresolved questions      | `none`  | `<question and search scope>` |
 
-## 3. Tradeoff decision
+### B. Machine-readable scope bounds
 
-| Option | Benefit | Cost or risk |
-| ------ | ------- | ------------ |
-| A      |         |              |
-| B      |         |              |
-
-**Recommendation:**
-
-**Human decision:**
-
-**What would change this decision:**
-
-**Evidence tier decision:** unit / integration / focused E2E / walkthrough
-
-## 4. Scope bounds
-
-The frontmatter globs are machine-readable.
+The frontmatter globs are consumed by verification.
 
 **In bounds:**
 
@@ -78,13 +91,13 @@ The frontmatter globs are machine-readable.
 
 - `<excluded path or behavior>`
 
-## 5. Acceptance criteria
+### C. Acceptance criteria
 
 1. [ ] `verify:test` —
 2. [ ] `verify:test` —
 3. [ ] `manual` —
 
-## 6. Reproduction and evidence commands
+### D. Reproduction and evidence commands
 
 ```bash
 # Exact targeted commands QA can repeat.
@@ -94,7 +107,7 @@ The frontmatter globs are machine-readable.
 
 **Manual evidence:**
 
-## 7. Risk and rollback
+### E. Risk and rollback
 
 **User-visible risk:**
 
@@ -102,13 +115,13 @@ The frontmatter globs are machine-readable.
 
 **Rollback:**
 
-## 8. Assumptions
+### F. Assumptions
 
 | Assumption | Level       | How to verify |
 | ---------- | ----------- | ------------- |
 |            | `must-hold` |               |
 
-## 9. Implementation handoff
+### G. Implementation handoff
 
 **Branch:**
 
@@ -122,7 +135,7 @@ The frontmatter globs are machine-readable.
 
 **Remaining:**
 
-## 10. Post-PR log
+### H. Post-PR log
 
 Populate only stable join keys. Derive CI and review outcomes from GitHub later.
 

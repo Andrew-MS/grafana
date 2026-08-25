@@ -53,3 +53,19 @@ Prefer evidence that proves behavior rather than restating the implementation.
 - Frontend and backend in separate PRs because they deploy at different
   cadences.
 - Existing selector or accessible role query versus a new versioned selector.
+
+## Model adherence versus mechanical enforcement
+
+State which gates rely on instructions and which are enforced by tools:
+
+| Gate                    | Instruction-only risk                     | Preferred mechanism                                                  |
+| ----------------------- | ----------------------------------------- | -------------------------------------------------------------------- |
+| No code before contract | Agent may interpret urgency as permission | Built-in Plan Mode                                                   |
+| Red before production   | Agent may add test and source together    | `grafana-verify` refuses changed source                              |
+| Scope bounds            | Agent may widen the diff while debugging  | Contract verifier over changed paths                                 |
+| Push approval           | Agent or subagent may infer old approval  | New explicit push response; consider a narrow hook or human-run push |
+| CI success              | Agent may summarize local checks as CI    | Repository CI remains authoritative                                  |
+
+When adherence has already failed in dogfood, do not describe another prompt as
+enforcement. Prefer a deterministic check, a product mode, a hook, or a human
+action. Record the added friction as the cost of that option.

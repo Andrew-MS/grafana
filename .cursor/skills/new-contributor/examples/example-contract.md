@@ -26,15 +26,41 @@ out_of_bounds:
 > This is an illustrative draft, not rehearsal evidence. A fresh Plan Mode run
 > must rediscover and approve its contents before implementation.
 
-## 1. Outcome
+## What you are approving
 
-People searching for a folder can return to browsing the full folder tree with
-one action. The search remains focused so they can immediately type again.
+### Outcome
 
-Non-goal: changing the overlay's Tab-key behavior or making the new pointer
-action keyboard-reachable.
+- **Who is affected:** People choosing a folder while saving or moving a dashboard.
+- **Problem:** Search replaces the browse tree and returning requires manually deleting the query.
+- **User-visible outcome:** One clear action restores the full tree while search remains focused.
+- **Success signal:** The query is empty, the browse root returns, focus stays in search, and the action disappears.
 
-## 2. Discovery evidence
+### Decisions
+
+| Decision       | Options considered                         | Recommendation     | Your choice        | Why                                                             |
+| -------------- | ------------------------------------------ | ------------------ | ------------------ | --------------------------------------------------------------- |
+| Clear control  | Button, IconButton, clickable Icon         | IconButton         | IconButton         | Compact semantic control; do not copy clickable Icon            |
+| Keyboard scope | Change Tab behavior or preserve it         | Preserve           | Preserve           | Keyboard traversal is a separate blast radius                   |
+| Evidence tier  | Unit only, unit + walkthrough, focused E2E | Unit + walkthrough | Unit + walkthrough | All behavior is deterministic except the real-host confirmation |
+| Rollout        | Feature toggle or direct                   | Direct             | Direct             | Additive local UI with no persistence or migration              |
+
+### Scope and non-goals
+
+- **In scope:** Existing search input suffix, co-located behavior tests, generated locale key.
+- **Not in scope:** Tab behavior, shared `@grafana/ui`, new selectors, or other pickers.
+
+### Evidence promise
+
+- **Deterministic:** Named red test, targeted Jest, lint, format, and i18n.
+- **Manual:** Save-drawer walkthrough showing clear, restored tree, and focus.
+- **CI authority:** Current frontend, i18n, and owner-gated workflows.
+- **Approval effect:** Build starts test-first implementation; push still requires separate approval.
+
+---
+
+## Engineering appendix
+
+### A. Discovery packet
 
 | Field                   | Finding                                                                                                | Repository evidence                                                                                                                                          |
 | ----------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -48,20 +74,14 @@ action keyboard-reachable.
 | Skills                  | Conventions, frontend testing, and selector reuse                                                      | `grafana-conventions`, `frontend-testing-strategy`, `add-e2e-selectors`                                                                                      |
 | Targeted commands       | Co-located Jest, ESLint, and i18n extraction                                                           | section 6                                                                                                                                                    |
 | Verified at             | Record the current base SHA during a real Plan run                                                     | `git rev-parse HEAD`                                                                                                                                         |
-| Unresolved              | This illustrative draft has not resolved the control choice or test fixture                            | must be answered before CreatePlan                                                                                                                           |
+| Unresolved              | None                                                                                                   | decisions above                                                                                                                                              |
 
-## 3. Tradeoff decision
-
-Choose a semantic `Button` or `IconButton` after comparing the existing
-exemplars. Do not copy the sibling clickable `Icon` accessibility pattern. A
-real Plan run asks for and records this decision before CreatePlan.
-
-## 4. Scope bounds
+### B. Scope bounds
 
 Only the frontmatter paths are approved. Changing keyboard traversal or
 `@grafana/ui` is a separate contract.
 
-## 5. Acceptance criteria
+### C. Acceptance criteria
 
 1. [ ] `verify:test` — clearing empties the search value.
 2. [ ] `verify:test` — focus returns to the search input.
@@ -69,7 +89,7 @@ Only the frontmatter paths are approved. Changing keyboard traversal or
 4. [ ] `verify:test` — clearing restores the browse-only `Dashboards` root.
 5. [ ] `manual` — the same flow works in the dashboard Save drawer.
 
-## 6. Reproduction and evidence commands
+### D. Reproduction and evidence commands
 
 ```bash
 yarn jest public/app/core/components/NestedFolderPicker/NestedFolderPicker.test.tsx --watchAll=false
@@ -82,26 +102,26 @@ yarn i18n-extract
 The baseline-red output must name the new test and show that the accessible
 Clear search action is absent.
 
-## 7. Risk and rollback
+### E. Risk and rollback
 
 Risk is limited to the folder-picker overlay. Revert the feature commit to
 restore current behavior. No security review trigger or feature toggle is
 expected.
 
-## 8. Assumptions
+### F. Assumptions
 
 | Assumption                                                            | Level       | How to verify                                   |
 | --------------------------------------------------------------------- | ----------- | ----------------------------------------------- |
 | Existing search tests can await the debounce without console warnings | `must-hold` | Run targeted Jest twice and once with `CI=true` |
 | The Save drawer exposes this picker in a focused Playwright flow      | `assumed`   | Rehearse against a pre-warmed server            |
 
-## 9. Implementation handoff
+### G. Implementation handoff
 
 Create the feature branch from the fork's updated `main`. Load the frontend
 testing skill and the conventions frontend reference. Generate i18n output before
 the implementation commit.
 
-## 10. Post-PR log
+### H. Post-PR log
 
 - PR URL:
 - Head SHA:

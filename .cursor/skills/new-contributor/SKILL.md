@@ -1,21 +1,28 @@
 ---
-name: contributor
-description: Guide a contributor from product outcome through an approved, repository-grounded contract, implementation, evidence, review, and PR. Use in Plan Mode first, then activate with Use as Mode.
+name: new-contributor
+description: Interview and guide a first-time contributor from product outcome through repository-grounded decisions, an approved Cursor plan, test-first implementation, evidence, review, and PR. Start in built-in Plan Mode and reload after Build.
 icon: git-branch
 color: blue
 ---
 
-# Contributor workflow
+# New Contributor
 
-Use one guided workflow in two mutually exclusive Cursor modes. Default to the
-first-time-contributor experience unless the user asks for concise updates.
+Guide the user through the repository's end-to-end contribution experience.
+Keep the user involved in consequential decisions rather than silently choosing
+an implementation. Use built-in Plan Mode for phases 1–4, then the built-in
+Build transition and Agent Mode for phases 5–8.
+
+If invoked outside Plan Mode with only a product request and no approved Cursor
+plan, do not explore or edit. Ask the user to switch to Plan Mode and attach
+`/new-contributor`. A generic "complete the request" instruction never bypasses
+this entry gate.
 
 ## Journey navigator
 
 Start every user-facing response with:
 
 ```text
-Contributor journey: <phase-number>/8 — <phase>
+New Contributor journey: <phase-number>/8 — <phase>
 Completed: <completed phases or "none">
 Current: <what is happening now>
 Need from you: <one decision or "nothing">
@@ -32,28 +39,34 @@ or asking to push.
 
 When attached to a message in built-in Plan Mode:
 
-1. **Understand** the user, outcome, success signal, and non-goals. Ask only one
-   or two critical questions at a time. If an AskQuestion tool is unavailable,
+1. **Understand** as an interview. Ask one or two product questions at a time:
+   who experiences the problem, what outcome matters, how success is observed,
+   and what is explicitly not required. If an AskQuestion tool is unavailable,
    ask directly in chat; CreatePlan is never a substitute for a question.
 2. **Discover** with the readonly `convention-resolver` subagent and
    `../grafana-conventions/references/convention-map.md`. Require its structured
    discovery packet. Do not duplicate its repo-wide searches in the parent.
 3. **Disambiguate** unclear scope and conflicting patterns using
-   `references/tradeoffs.md`. Explain options in product language and ask every
-   decision-bearing question now. Evidence tier, control/API choice, scope, and
-   rollout decisions may not remain blank.
+   `references/tradeoffs.md`. Present one decision at a time in interview form:
+   user impact, Option A/B, recommendation, cost/risk, and what would change the
+   recommendation. Ask the user to choose or accept the recommendation. Evidence
+   tier, control/API choice, scope, and rollout decisions may not remain blank.
 4. **Contract** only after Understand, Discover, and Disambiguate are complete.
-   Call CreatePlan once. The saved Cursor plan is the authoritative contract.
-   Do not write `.cursor/contracts/` in Plan Mode and never ask the user to edit
-   YAML.
-5. Stop and ask the human to approve the complete plan for implementation.
+   First show a decision recap and confirm there are no unanswered questions.
+   Call CreatePlan once. Put the human-facing approval summary at the top and
+   the engineering discovery packet below it. The saved Cursor plan is the
+   authoritative contract. Do not write `.cursor/contracts/` in Plan Mode and
+   never ask the user to edit YAML.
+5. Stop at the native plan approval UI. Clicking **Build** approves the complete
+   plan for implementation but never approves a future push.
 
 Plan Mode is the tool-level boundary. Do not switch modes or edit production
 files while the contract is incomplete or unapproved.
 
-## Lane 2: implementation as a Custom Mode
+## Lane 2: implementation after Build
 
-When activated with **Use as Mode**:
+When Cursor transitions to Agent Mode through **Build**, reload this skill. The
+approved Cursor plan remains the task-specific contract.
 
 1. Require the approved Cursor plan to be attached. Refuse to edit if it lacks
    a resolved discovery packet, human decisions, scope bounds, numbered
@@ -75,15 +88,14 @@ When activated with **Use as Mode**:
    evidence-tier changes.
 7. Generate required output, commit, and run final verification against clean
    `HEAD`.
-8. **Review** with the readonly `contract-verifier`. After human push approval,
+8. **Review** with the readonly `contract-verifier`. Use `/review` before push
+   only when the user requests local source review. After human push approval,
    open a draft PR and use BugBot as the default source reviewer before asking
-   humans to review. Use `/review` only when BugBot is unavailable or a local
-   pre-push review is explicitly requested. Use `/review-security` only for the
-   verifier's risk classes.
+   humans to review. Use `/review-security` only for the verifier's risk classes.
 9. For a user-visible change, run the approved browser evidence and create the
    walkthrough recording in the same agent that owns the browser and recording
    state. Do not hand off an active recording.
-10. Show final verification, signature, review plan, and walkthrough evidence.
+10. Show final verification, signature, BugBot plan, and walkthrough evidence.
     Ask a new, explicit push question. Contract or implementation approval never
     counts as push approval. No subagent or `/babysit` may infer it.
 11. After approval, push and open the draft PR with the contract, verification
