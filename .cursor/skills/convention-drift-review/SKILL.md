@@ -119,9 +119,10 @@ as they age.
   across 400 files reads as a hot directory.
 - Comment volume is a proxy for a context gap, and sometimes a bad one: a large
   or contentious pull request attracts comments regardless of conventions.
-- Neither collector reads meaning. `causedRework` is a heuristic — a comment on a
-  file the pull request touched again is _likely_ to have caused a change, not
-  certainly.
+- Neither collector reads meaning. A counted comment may be discussion rather
+  than a defect, and nothing here distinguishes the two; only the thread does.
+  Whether a comment caused rework is deliberately not computed — it would need a
+  per-pull-request fan-out this collector avoids on purpose.
 - Bot comments are excluded from proposals on the assumption that BugBot caught
   them pre-review. If BugBot is not enabled, that assumption is wrong and its
   comments should be read too.

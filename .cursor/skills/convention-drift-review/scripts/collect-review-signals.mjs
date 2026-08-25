@@ -23,12 +23,6 @@ function isBot(login) {
   return login.endsWith('[bot]') || /^(bugbot|copilot|dependabot|renovate)/i.test(login);
 }
 
-// A comment on a file that the same pull request changed again afterwards is
-// evidence the comment caused rework, not just discussion.
-function causedRework(comment, laterCommitPaths) {
-  return laterCommitPaths.has(comment.path);
-}
-
 function selfTest() {
   let failed = false;
   const check = (label, actual, expected) => {
@@ -43,9 +37,6 @@ function selfTest() {
   check('copilot', isBot('copilot-pull-request-reviewer[bot]'), true);
   check('human', isBot('torkelo'), false);
   check('human containing bot', isBot('robotnik'), false);
-
-  check('rework yes', causedRework({ path: 'a/b.ts' }, new Set(['a/b.ts'])), true);
-  check('rework no', causedRework({ path: 'a/b.ts' }, new Set(['c/d.ts'])), false);
 
   if (!selfTestGlobs()) {
     failed = true;
