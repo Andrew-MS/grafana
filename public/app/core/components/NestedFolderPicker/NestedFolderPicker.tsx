@@ -407,7 +407,7 @@ export function NestedFolderPicker({
               name="times"
               size="sm"
               tabIndex={-1}
-              tooltip={clearSearchLabel}
+              aria-label={clearSearchLabel}
               data-folder-picker-clear-search=""
               onMouseDown={(event) => {
                 event.preventDefault();
