@@ -409,4 +409,96 @@ describe('NestedFolderPicker', () => {
       expect(screen.queryByLabelText('Starred Folder One')).toBeNull();
     });
   });
+
+  describe('search clear', () => {
+    async function openPickerAndTypeQuery(user: ReturnType<typeof render>['user'], query: string) {
+      await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+      await screen.findByLabelText(folderA.item.title);
+      const input = screen.getByPlaceholderText('Search folders');
+      // skipClick: the open Input is already focused. A click on it toggles Floating UI closed.
+      await user.type(input, query, { skipClick: true });
+      return input;
+    }
+
+    async function waitForSearchResults() {
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('Search folders')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Dashboards')).not.toBeInTheDocument();
+      });
+    }
+
+    it('shows a Clear search action after a non-empty query', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      await openPickerAndTypeQuery(user, 'Folder');
+
+      expect(screen.getByRole('button', { name: 'Clear search' })).toBeInTheDocument();
+    });
+
+    it('does not show a Clear search action when the query is empty', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+      await screen.findByPlaceholderText('Search folders');
+
+      expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+    });
+
+    it('clicking Clear search empties the query, restores the browse tree, and keeps search focused', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      const input = await openPickerAndTypeQuery(user, 'Folder');
+      await waitForSearchResults();
+
+      await user.click(screen.getByRole('button', { name: 'Clear search' }));
+
+      expect(input).toHaveValue('');
+      expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+      expect(await screen.findByLabelText('Dashboards')).toBeInTheDocument();
+      expect(screen.getByLabelText(folderA.item.title)).toBeInTheDocument();
+      expect(input).toHaveFocus();
+    });
+
+    it('Escape clears a non-empty query, restores the browse tree, keeps search focused, and leaves the overlay open', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      const input = await openPickerAndTypeQuery(user, 'Folder');
+      await waitForSearchResults();
+
+      input.focus();
+      await user.keyboard('{Escape}');
+
+      expect(input).toHaveValue('');
+      expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+      expect(await screen.findByLabelText('Dashboards')).toBeInTheDocument();
+      expect(screen.getByLabelText(folderA.item.title)).toBeInTheDocument();
+      expect(input).toHaveFocus();
+      expect(screen.getByPlaceholderText('Search folders')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Select folder' })).not.toBeInTheDocument();
+    });
+
+    it('Escape clears search when the Clear search action is focused and leaves the overlay open', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      const input = await openPickerAndTypeQuery(user, 'Folder');
+      await waitForSearchResults();
+
+      const clearButton = screen.getByRole('button', { name: 'Clear search' });
+      fireEvent.focus(clearButton);
+      await user.keyboard('{Escape}');
+
+      expect(input).toHaveValue('');
+      expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+      expect(await screen.findByLabelText('Dashboards')).toBeInTheDocument();
+      expect(screen.getByLabelText(folderA.item.title)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Search folders')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Select folder' })).not.toBeInTheDocument();
+    });
+
+    it('Escape closes the overlay when search is empty', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+      await screen.findByPlaceholderText('Search folders');
+
+      await user.keyboard('{Escape}');
+
+      expect(await screen.findByRole('button', { name: 'Select folder' })).toBeInTheDocument();
+      expect(screen.queryByPlaceholderText('Search folders')).not.toBeInTheDocument();
+    });
+  });
 });
