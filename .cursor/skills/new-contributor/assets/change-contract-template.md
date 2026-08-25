@@ -8,6 +8,9 @@ requested_by: pm
 created_at: 'YYYY-MM-DDTHH:MM:SSZ'
 approved_at:
 approved_by:
+plan_uri:
+plan_sha256:
+plan_revision: 1
 verify_passed: false
 pr_url:
 head_sha:
@@ -72,6 +75,18 @@ classify technical risk.
 Clicking **Build** approves this complete contract and starts test-first
 implementation through `grafana-implementation`. It does not approve commit
 push, PR readiness, or merge.
+
+### Plan provenance
+
+- **Approved plan URI:** `<saved Cursor plan path or URI>`
+- **Approved plan SHA-256:** `<computed after approval, before implementation>`
+- **Revision:** `1`
+- **Amendments:** none
+
+The original approved plan is immutable as the baseline. Tactical implementation
+deviations are allowed when documented below and the outcome, acceptance
+criteria, and non-goals remain intact. Changes to those or to material
+rollout/security risk require a human-approved amendment and new revision/hash.
 
 ---
 
@@ -158,7 +173,23 @@ discovery packet.
 
 **Remaining:**
 
-### H. Post-PR log
+### H. Outcome and acceptance review
+
+| Plan item              | Result                        | Evidence |
+| ---------------------- | ----------------------------- | -------- |
+| Original outcome       | met / partially met / not met |          |
+| Acceptance criterion 1 | pass / fail                   |          |
+| Non-goals              | respected / changed           |          |
+
+**Implementation deviations:**
+
+| Planned | Actual | Reason | Impact on outcome, evidence, risk, and non-goals |
+| ------- | ------ | ------ | ------------------------------------------------ |
+|         |        |        |                                                  |
+
+**Approved amendments:** none
+
+### I. Post-PR log
 
 Populate only stable join keys. Derive CI and review outcomes from GitHub later.
 

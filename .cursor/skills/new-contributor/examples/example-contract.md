@@ -8,6 +8,9 @@ requested_by: support
 created_at: '2026-08-25T00:00:00Z'
 approved_at:
 approved_by:
+plan_uri:
+plan_sha256:
+plan_revision: 1
 verify_passed: false
 pr_url:
 head_sha:
@@ -71,6 +74,14 @@ out_of_bounds:
 - **Manual:** Save-drawer walkthrough showing clear, restored tree, and focus.
 - **CI authority:** Current frontend, i18n, and owner-gated workflows.
 - **Approval effect:** Build starts test-first implementation; push still requires separate approval.
+
+### Plan provenance
+
+This illustrative draft has no approval hash. A real run records the saved
+Cursor plan URI and SHA-256 immediately after Build, before any implementation.
+Tactical implementation deviations are logged against this baseline. Only an
+outcome, acceptance, non-goal, or material-risk change requires an approved new
+revision and hash.
 
 ---
 
@@ -137,7 +148,21 @@ After Build, load `grafana-implementation`, the frontend testing skill, and the
 conventions frontend reference. Create the feature branch from the fork's
 updated `main`. Generate i18n output before the implementation commit.
 
-### H. Post-PR log
+### H. Outcome and acceptance review
+
+| Plan item               | Result  | Evidence                      |
+| ----------------------- | ------- | ----------------------------- |
+| Original outcome        | pending | final walkthrough             |
+| Clear empties search    | pending | targeted Jest                 |
+| Focus remains in search | pending | targeted Jest and walkthrough |
+| Browse root returns     | pending | targeted Jest and walkthrough |
+| Non-goals               | pending | changed-files review          |
+
+**Implementation deviations:** none yet
+
+**Approved amendments:** none
+
+### I. Post-PR log
 
 - PR URL:
 - Head SHA:

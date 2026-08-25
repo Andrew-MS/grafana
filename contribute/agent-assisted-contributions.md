@@ -121,7 +121,16 @@ Plan Mode prevents production edits in this lane.
 | DevOps / Platform | Ownership, likely checks confirmed from current workflows, signing, rollback, and context boundary |
 
 Working contract and verification files are ignored local scratch. The PR body
-is their durable, shared destination.
+is their durable, shared destination. It includes the original approved plan
+URI/hash/revision, an outcome-and-acceptance matrix, documented tactical
+deviations, the machine projection, and final evidence.
+
+The original plan is a baseline, not an implementation prison. Files, helpers,
+commands, and internal approach may change when runtime evidence warrants it.
+Before PR, the verifier confirms that the original outcome and every acceptance
+criterion are met, non-goals remain respected, and each deviation is explained.
+Outcome, acceptance, non-goal, or material-risk changes require a new
+human-approved plan revision.
 
 ## Maintaining the workflow
 

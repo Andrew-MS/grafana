@@ -72,15 +72,17 @@ files while the contract is incomplete or unapproved.
 When the user clicks **Build**:
 
 1. Load `../grafana-implementation/SKILL.md` in Agent Mode.
-2. Attach the approved Cursor plan; it is the task-specific contract and
-   discovery cache.
+2. Attach the approved Cursor plan and preserve its URI; it is the authoritative
+   task-specific contract and discovery cache.
 3. Start at its Implement phase. Do not repeat Discover.
 4. `new-contributor` stops directing the run. The universal implementation skill
    owns test-first work, deterministic verification, review, evidence, and push
    gates from this point forward.
 
 The plan's implementation handoff must name `grafana-implementation` plus only
-the stack-specific skills selected during Discover.
+the stack-specific skills selected during Discover. Before any implementation,
+the universal skill hashes the approved plan and records its URI, SHA-256, and
+revision in the machine-readable projection.
 
 ## Search budget
 
