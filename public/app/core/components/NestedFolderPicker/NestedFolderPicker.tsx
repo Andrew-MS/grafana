@@ -7,7 +7,7 @@ import * as React from 'react';
 import { type GrafanaTheme2 } from '@grafana/data';
 import { selectors } from '@grafana/e2e-selectors';
 import { t } from '@grafana/i18n';
-import { Alert, floatingUtils, Icon, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
+import { Alert, floatingUtils, Icon, IconButton, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
 import { useGetFolderQueryFacade } from 'app/api/clients/folder/v1beta1/hooks';
 import { getMessageFromError, getStatusFromError } from 'app/core/utils/errors';
 import { type DashboardViewItemWithUIItems, type DashboardsTreeItem } from 'app/features/browse-dashboards/types';
@@ -187,7 +187,13 @@ export function NestedFolderPicker({
   });
 
   const click = useClick(context);
-  const dismiss = useDismiss(context);
+  const dismiss = useDismiss(context, {
+    outsidePress: (event) => {
+      const target = event.target;
+      // The clear control sits in the input suffix, outside the floating-ui reference node.
+      return !(target instanceof Element && target.closest('[data-folder-picker-clear-search]'));
+    },
+  });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, click]);
 
@@ -227,6 +233,17 @@ export function NestedFolderPicker({
     },
     [onChange]
   );
+
+  const keepSearchFocused = useCallback((event: React.MouseEvent | React.PointerEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
+
+  const handleClearSearch = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSearch('');
+  }, []);
 
   const handleCloseOverlay = useCallback(() => setOverlayOpen(false), [setOverlayOpen]);
 
@@ -358,6 +375,19 @@ export function NestedFolderPicker({
         aria-owns={overlayId}
         aria-activedescendant={getDOMId(overlayId, flatTree[focusedItemIndex]?.item.uid)}
         role="combobox"
+        suffix={
+          search ? (
+            <IconButton
+              name="times"
+              aria-label={t('browse-dashboards.folder-picker.clear-search', 'Clear search')}
+              tabIndex={-1}
+              data-folder-picker-clear-search=""
+              onPointerDown={keepSearchFocused}
+              onMouseDown={keepSearchFocused}
+              onClick={handleClearSearch}
+            />
+          ) : undefined
+        }
         {...getReferenceProps()}
         onKeyDown={handleKeyDown}
       />

@@ -4,6 +4,7 @@ import { setBackendSrv } from '@grafana/runtime';
 import { setupMockServer } from '@grafana/test-utils/server';
 import { getFolderFixtures, setTestFlags } from '@grafana/test-utils/unstable';
 import { backendSrv } from 'app/core/services/backend_srv';
+import { getGrafanaSearcher } from 'app/features/search/service/searcher';
 import { resolveStarredFolders } from 'app/features/stars/folders';
 import { useStarredItems } from 'app/features/stars/hooks';
 
@@ -37,6 +38,7 @@ jest.mock('app/features/stars/folders', () => ({
   ...jest.requireActual('app/features/stars/folders'),
   resolveStarredFolders: jest.fn(),
 }));
+jest.mock('app/features/search/service/searcher');
 
 describe('NestedFolderPicker', () => {
   const mockOnChange = jest.fn();
@@ -45,6 +47,23 @@ describe('NestedFolderPicker', () => {
   const useStarredItemsMock = useStarredItems as jest.Mock;
   const resolveStarredFoldersMock = resolveStarredFolders as jest.Mock;
   const useFoldersQueryMock = useFoldersQuery as jest.Mock;
+
+  function mockFolderSearch(folders: Array<{ uid: string; title: string }>) {
+    const rows = folders.map((folder) => ({
+      kind: 'folder',
+      name: folder.title,
+      uid: folder.uid,
+    }));
+    const search = jest.fn().mockResolvedValue({
+      view: {
+        map: (mapper: (row: (typeof rows)[number]) => unknown) => rows.map(mapper),
+      },
+    });
+    jest.mocked(getGrafanaSearcher).mockReturnValue({
+      search,
+    } as unknown as ReturnType<typeof getGrafanaSearcher>);
+    return search;
+  }
 
   beforeAll(() => {
     window.HTMLElement.prototype.scrollIntoView = function () {};
@@ -254,6 +273,57 @@ describe('NestedFolderPicker', () => {
     // Select the first child
     await user.keyboard('{ArrowDown}{Enter}');
     expect(mockOnChange).toHaveBeenCalledWith(folderA_folderC.item.uid, folderA_folderC.item.title);
+  });
+
+  it('does not show a Clear search control when the query is empty', async () => {
+    const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+    await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+
+    expect(await screen.findByPlaceholderText('Search folders')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+  });
+
+  it('clears search, restores the Dashboards tree, and keeps search focused', async () => {
+    mockFolderSearch([{ uid: folderA.item.uid, title: folderA.item.title }]);
+
+    const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+    await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+
+    const searchInput = await screen.findByPlaceholderText('Search folders');
+    expect(await screen.findByLabelText('Dashboards')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+
+    await user.type(searchInput, 'Folder');
+
+    const clearSearch = await screen.findByRole('button', { name: 'Clear search' });
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Dashboards')).not.toBeInTheDocument();
+    });
+    expect(screen.getByLabelText(folderA.item.title)).toBeInTheDocument();
+
+    await user.click(clearSearch);
+
+    expect(searchInput).toHaveValue('');
+    expect(screen.queryByRole('button', { name: 'Clear search' })).not.toBeInTheDocument();
+    expect(await screen.findByLabelText('Dashboards')).toBeInTheDocument();
+    expect(searchInput).toHaveFocus();
+  });
+
+  it('shows Clear search when no folders are found and restores the tree after clearing', async () => {
+    mockFolderSearch([]);
+
+    const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+    await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+
+    const searchInput = await screen.findByPlaceholderText('Search folders');
+    await user.type(searchInput, 'nope');
+
+    expect(await screen.findByText('No folders found')).toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'Clear search' }));
+
+    expect(searchInput).toHaveValue('');
+    expect(await screen.findByLabelText('Dashboards')).toBeInTheDocument();
+    expect(searchInput).toHaveFocus();
   });
 
   it('shows an error when folder browsing fails', async () => {
