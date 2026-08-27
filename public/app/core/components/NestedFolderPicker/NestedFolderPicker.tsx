@@ -7,7 +7,7 @@ import * as React from 'react';
 import { type GrafanaTheme2 } from '@grafana/data';
 import { selectors } from '@grafana/e2e-selectors';
 import { t } from '@grafana/i18n';
-import { Alert, floatingUtils, Icon, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
+import { Alert, Button, floatingUtils, Icon, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
 import { useGetFolderQueryFacade } from 'app/api/clients/folder/v1beta1/hooks';
 import { getMessageFromError, getStatusFromError } from 'app/core/utils/errors';
 import { type DashboardViewItemWithUIItems, type DashboardsTreeItem } from 'app/features/browse-dashboards/types';
@@ -115,6 +115,7 @@ export function NestedFolderPicker({
   const overlayId = useId();
 
   const lastSearchTimestamp = useRef<number>(0);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     teamFolderTreeItems,
@@ -186,8 +187,29 @@ export function NestedFolderPicker({
     whileElementsMounted: autoUpdate,
   });
 
+  const setSearchInputRef = useCallback(
+    (node: HTMLInputElement | null) => {
+      searchInputRef.current = node;
+      refs.setReference(node);
+    },
+    [refs]
+  );
+
+  const handleClearSearch = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    // Keep the caret in search so people can type a new query immediately.
+    event.preventDefault();
+    event.stopPropagation();
+    searchInputRef.current?.focus();
+    setSearch('');
+  }, []);
+
   const click = useClick(context);
-  const dismiss = useDismiss(context);
+  const dismiss = useDismiss(context, {
+    outsidePress: (event) => {
+      const target = event.target;
+      return !(target instanceof Element && target.closest('[data-folder-picker-clear-search]'));
+    },
+  });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, click]);
 
@@ -342,7 +364,7 @@ export function NestedFolderPicker({
   return (
     <>
       <Input
-        ref={refs.setReference}
+        ref={setSearchInputRef}
         autoFocus
         data-testid={selectors.components.FolderPicker.input}
         prefix={label ? <Icon name="folder" /> : <Icon name="search" />}
@@ -358,6 +380,23 @@ export function NestedFolderPicker({
         aria-owns={overlayId}
         aria-activedescendant={getDOMId(overlayId, flatTree[focusedItemIndex]?.item.uid)}
         role="combobox"
+        suffix={
+          search !== '' ? (
+            <Button
+              icon="times"
+              fill="text"
+              size="sm"
+              data-folder-picker-clear-search
+              onMouseDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              onClick={handleClearSearch}
+            >
+              {t('browse-dashboards.folder-picker.clear-search', 'Clear search')}
+            </Button>
+          ) : undefined
+        }
         {...getReferenceProps()}
         onKeyDown={handleKeyDown}
       />
