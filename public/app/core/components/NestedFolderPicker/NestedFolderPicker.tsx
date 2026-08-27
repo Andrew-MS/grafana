@@ -6,8 +6,8 @@ import * as React from 'react';
 
 import { type GrafanaTheme2 } from '@grafana/data';
 import { selectors } from '@grafana/e2e-selectors';
-import { t } from '@grafana/i18n';
-import { Alert, floatingUtils, Icon, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
+import { t, Trans } from '@grafana/i18n';
+import { Alert, Button, floatingUtils, Icon, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
 import { useGetFolderQueryFacade } from 'app/api/clients/folder/v1beta1/hooks';
 import { getMessageFromError, getStatusFromError } from 'app/core/utils/errors';
 import { type DashboardViewItemWithUIItems, type DashboardsTreeItem } from 'app/features/browse-dashboards/types';
@@ -142,6 +142,8 @@ export function NestedFolderPicker({
   useEffect(() => {
     if (!search) {
       setSearchResults(null);
+      setIsFetchingSearchResults(false);
+      lastSearchTimestamp.current = Date.now();
       return;
     }
 
@@ -229,6 +231,13 @@ export function NestedFolderPicker({
   );
 
   const handleCloseOverlay = useCallback(() => setOverlayOpen(false), [setOverlayOpen]);
+
+  const handleShowAllFolders = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    // Keep focus in the search field so the user can type a new query immediately.
+    event.preventDefault();
+    event.stopPropagation();
+    setSearch('');
+  }, []);
 
   const handleLoadMore = useCallback(
     (folderUID: string | undefined) => {
@@ -341,26 +350,43 @@ export function NestedFolderPicker({
 
   return (
     <>
-      <Input
-        ref={refs.setReference}
-        autoFocus
-        data-testid={selectors.components.FolderPicker.input}
-        prefix={label ? <Icon name="folder" /> : <Icon name="search" />}
-        placeholder={label ?? t('browse-dashboards.folder-picker.search-placeholder', 'Search folders')}
-        value={search}
-        invalid={invalid}
-        className={styles.search}
-        onChange={(e) => setSearch(e.currentTarget.value)}
-        aria-autocomplete="list"
-        aria-expanded
-        aria-haspopup
-        aria-controls={overlayId}
-        aria-owns={overlayId}
-        aria-activedescendant={getDOMId(overlayId, flatTree[focusedItemIndex]?.item.uid)}
-        role="combobox"
-        {...getReferenceProps()}
-        onKeyDown={handleKeyDown}
-      />
+      <div ref={refs.setReference} className={styles.search}>
+        <Input
+          autoFocus
+          data-testid={selectors.components.FolderPicker.input}
+          prefix={label ? <Icon name="folder" /> : <Icon name="search" />}
+          placeholder={label ?? t('browse-dashboards.folder-picker.search-placeholder', 'Search folders')}
+          value={search}
+          invalid={invalid}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+          suffix={
+            search ? (
+              <Button
+                icon="times"
+                fill="text"
+                size="sm"
+                tabIndex={-1}
+                onMouseDown={handleShowAllFolders}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+              >
+                <Trans i18nKey="browse-dashboards.folder-picker.show-all-folders">Show all folders</Trans>
+              </Button>
+            ) : undefined
+          }
+          aria-autocomplete="list"
+          aria-expanded
+          aria-haspopup
+          aria-controls={overlayId}
+          aria-owns={overlayId}
+          aria-activedescendant={getDOMId(overlayId, flatTree[focusedItemIndex]?.item.uid)}
+          role="combobox"
+          {...getReferenceProps()}
+          onKeyDown={handleKeyDown}
+        />
+      </div>
       <fieldset
         ref={refs.setFloating}
         id={overlayId}
@@ -626,6 +652,7 @@ const getStyles = (theme: GrafanaTheme2) => {
       overflow: 'hidden', // loading bar overflows its container, so we need to clip it
     }),
     search: css({
+      width: '100%',
       input: {
         cursor: 'default',
       },
