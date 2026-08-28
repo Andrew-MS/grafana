@@ -13,6 +13,23 @@ import { useGetTeamFolders } from './useTeamOwnedFolder';
 
 const [_, { folderA, folderB, folderC, folderA_folderA, folderA_folderB, folderA_folderC }] = getFolderFixtures();
 
+const mockSearch = jest.fn();
+
+jest.mock('app/features/search/service/searcher', () => ({
+  getGrafanaSearcher: () => ({ search: mockSearch }),
+}));
+
+const SEARCH_HIT_TITLE = 'Search Hit Folder';
+const SEARCH_HIT_UID = 'search-hit-uid';
+
+function searchView(hits: Array<{ uid: string; name: string }>) {
+  return {
+    dataFrame: { meta: {} },
+    map: (fn: (item: { kind: string; uid: string; name: string }) => unknown) =>
+      hits.map((hit) => fn({ kind: 'folder', uid: hit.uid, name: hit.name })),
+  };
+}
+
 setupMockServer();
 setBackendSrv(backendSrv);
 
@@ -71,6 +88,10 @@ describe('NestedFolderPicker', () => {
     resolveStarredFoldersMock.mockResolvedValue([
       { kind: 'folder', uid: 'starred-folder-1', title: 'Starred Folder One' },
     ]);
+
+    mockSearch.mockResolvedValue({
+      view: searchView([{ uid: SEARCH_HIT_UID, name: SEARCH_HIT_TITLE }]),
+    });
   });
 
   afterAll(() => {
@@ -270,6 +291,46 @@ describe('NestedFolderPicker', () => {
 
     expect(await screen.findByText('Error loading some folders')).toBeInTheDocument();
     expect(screen.getByText('Failed to load folders')).toBeInTheDocument();
+  });
+
+  describe('search', () => {
+    async function openPickerAndSearch(user: ReturnType<typeof render>['user']) {
+      await user.click(await screen.findByRole('button', { name: 'Select folder' }));
+      expect(await screen.findByLabelText(folderA.item.title)).toBeInTheDocument();
+
+      const searchInput = screen.getByPlaceholderText('Search folders');
+      expect(searchInput).toHaveFocus();
+      await user.keyboard('hit');
+
+      expect(await screen.findByLabelText(SEARCH_HIT_TITLE)).toBeInTheDocument();
+      expect(screen.queryByLabelText(folderA.item.title)).not.toBeInTheDocument();
+
+      return searchInput;
+    }
+
+    it('clears search on Clear, restores the browse tree, and keeps focus in the search box', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      const searchInput = await openPickerAndSearch(user);
+
+      await user.click(screen.getByRole('button', { name: 'Clear' }));
+
+      expect(searchInput).toHaveValue('');
+      expect(searchInput).toHaveFocus();
+      expect(await screen.findByLabelText('Dashboards')).toBeInTheDocument();
+      expect(screen.getByLabelText(folderA.item.title)).toBeInTheDocument();
+      expect(screen.queryByLabelText(SEARCH_HIT_TITLE)).not.toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Search folders')).toBeInTheDocument();
+    });
+
+    it('closes the overlay on Escape while a search is active instead of clearing the query', async () => {
+      const { user } = render(<NestedFolderPicker onChange={mockOnChange} />);
+      await openPickerAndSearch(user);
+
+      await user.keyboard('{Escape}');
+
+      expect(screen.queryByPlaceholderText('Search folders')).not.toBeInTheDocument();
+      expect(await screen.findByRole('button', { name: 'Select folder' })).toBeInTheDocument();
+    });
   });
 
   describe('team folders', () => {
