@@ -7,7 +7,7 @@ import * as React from 'react';
 import { type GrafanaTheme2 } from '@grafana/data';
 import { selectors } from '@grafana/e2e-selectors';
 import { t } from '@grafana/i18n';
-import { Alert, floatingUtils, Icon, Input, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
+import { Alert, FilterInput, floatingUtils, LoadingBar, Stack, Text, useStyles2 } from '@grafana/ui';
 import { useGetFolderQueryFacade } from 'app/api/clients/folder/v1beta1/hooks';
 import { getMessageFromError, getStatusFromError } from 'app/core/utils/errors';
 import { type DashboardViewItemWithUIItems, type DashboardsTreeItem } from 'app/features/browse-dashboards/types';
@@ -187,7 +187,15 @@ export function NestedFolderPicker({
   });
 
   const click = useClick(context);
-  const dismiss = useDismiss(context);
+  const dismiss = useDismiss(context, {
+    outsidePress: (event) => {
+      const target = event.target;
+      if (target instanceof Element) {
+        return !target.closest('[data-testid="input-wrapper"]');
+      }
+      return true;
+    },
+  });
 
   const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, click]);
 
@@ -341,16 +349,16 @@ export function NestedFolderPicker({
 
   return (
     <>
-      <Input
+      <FilterInput
         ref={refs.setReference}
         autoFocus
         data-testid={selectors.components.FolderPicker.input}
-        prefix={label ? <Icon name="folder" /> : <Icon name="search" />}
         placeholder={label ?? t('browse-dashboards.folder-picker.search-placeholder', 'Search folders')}
         value={search}
         invalid={invalid}
         className={styles.search}
-        onChange={(e) => setSearch(e.currentTarget.value)}
+        escapeRegex={false}
+        onChange={setSearch}
         aria-autocomplete="list"
         aria-expanded
         aria-haspopup
